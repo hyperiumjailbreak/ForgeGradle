@@ -222,7 +222,6 @@ public abstract class PatcherUserBasePlugin<T extends UserBaseExtension> extends
     public abstract String getUserdevExtension(T ext);
 
     //@formatter:off
-    @Override protected boolean hasServerRun() { return true; }
     @Override protected boolean hasClientRun() { return true; }
     //@formatter:on
 }

@@ -62,12 +62,6 @@ public abstract class TweakerPlugin extends UserVanillaBasePlugin<TweakerExtensi
     }
 
     @Override
-    protected String getServerTweaker(TweakerExtension ext)
-    {
-        return "";// nothing, put it in as an argument
-    }
-
-    @Override
     protected String getClientRunClass(TweakerExtension ext)
     {
         return ext.getMainClass();
@@ -83,29 +77,8 @@ public abstract class TweakerPlugin extends UserVanillaBasePlugin<TweakerExtensi
     }
 
     @Override
-    protected String getServerRunClass(TweakerExtension ext)
-    {
-        return ext.getMainClass();
-    }
-
-    @Override
-    protected List<String> getServerRunArgs(TweakerExtension ext)
-    {
-        List<String> out = super.getServerRunArgs(ext);
-        out.add("--tweakClass");
-        out.add(ext.getTweakClass());
-        return out;
-    }
-
-    @Override
     protected List<String> getClientJvmArgs(TweakerExtension ext)
     {
         return ext.getResolvedClientJvmArgs();
-    }
-
-    @Override
-    protected List<String> getServerJvmArgs(TweakerExtension ext)
-    {
-        return ext.getResolvedServerJvmArgs();
     }
 }

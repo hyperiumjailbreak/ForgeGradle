@@ -121,11 +121,4 @@ public abstract class UserVanillaBasePlugin<T extends UserBaseExtension> extends
         List<String> out = ext.getResolvedClientRunArgs();
         return out;
     }
-
-    @Override
-    protected List<String> getServerRunArgs(T ext)
-    {
-        List<String> out = ext.getResolvedServerRunArgs();
-        return out;
-    }
 }

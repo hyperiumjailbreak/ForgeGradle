@@ -57,7 +57,6 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -74,7 +73,6 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
-import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -94,7 +92,6 @@ import net.minecraftforge.gradle.tasks.ApplyS2STask;
 import net.minecraftforge.gradle.tasks.CreateStartTask;
 import net.minecraftforge.gradle.tasks.DeobfuscateJar;
 import net.minecraftforge.gradle.tasks.ExtractS2SRangeTask;
-import net.minecraftforge.gradle.tasks.GenEclipseRunTask;
 import net.minecraftforge.gradle.tasks.PostDecompileTask;
 import net.minecraftforge.gradle.tasks.RemapSources;
 import net.minecraftforge.gradle.user.ReobfTaskFactory.ReobfTaskWrapper;
@@ -117,7 +114,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     {
         // apply the plugins
         this.applyExternalPlugin("java");
-        this.applyExternalPlugin("eclipse");
         this.applyExternalPlugin("idea");
 
         // life cycle tasks
@@ -160,7 +156,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         makeRunTasks();
 
         // IDE stuff
-        configureEclipse();
         configureIntellij();
 
         applyUserPlugin();
@@ -186,9 +181,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         // add replacements for run configs and gradle start
         T ext = getExtension();
         replacer.putReplacement(REPLACE_CLIENT_TWEAKER, getClientTweaker(ext));
-        replacer.putReplacement(REPLACE_SERVER_TWEAKER, getServerTweaker(ext));
         replacer.putReplacement(REPLACE_CLIENT_MAIN, getClientRunClass(ext));
-        replacer.putReplacement(REPLACE_SERVER_MAIN, getServerRunClass(ext));
 
         // map configurations (only if the maven or maven publish plugins exist)
         mapConfigurations();
@@ -246,19 +239,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
             exec.dependsOn(jarTask);
             exec.jvmArgs(getClientJvmArgs(getExtension()));
             exec.args(getClientRunArgs(getExtension()));
-        }
-
-        if (this.hasServerRun())
-        {
-            JavaExec exec = (JavaExec) project.getTasks().getByName("runServer");
-            exec.classpath(project.getConfigurations().getByName("runtime"));
-            exec.classpath(project.getConfigurations().getByName(CONFIG_MC));
-            exec.classpath(project.getConfigurations().getByName(CONFIG_MC_DEPS));
-            exec.classpath(project.getConfigurations().getByName(CONFIG_START));
-            exec.classpath(jarTask.getArchivePath());
-            exec.dependsOn(jarTask);
-            exec.jvmArgs(getServerJvmArgs(getExtension()));
-            exec.jvmArgs(getServerRunArgs(getExtension()));
         }
 
         // complain about version number
@@ -379,14 +359,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                 makeStart.dependsOn(TASK_DL_ASSET_INDEX, TASK_DL_ASSETS, TASK_EXTRACT_NATIVES);
             }
 
-            if (this.hasServerRun())
-            {
-                makeStart.addResource(GRADLE_START_RESOURCES[1]); // gradle start
-
-                makeStart.addReplacement("@@TWEAKERSERVER@@", delayedString(REPLACE_SERVER_TWEAKER));
-                makeStart.addReplacement("@@BOUNCERSERVER@@", delayedString(REPLACE_SERVER_MAIN));
-            }
-
             makeStart.addReplacement("@@MCVERSION@@", delayedString(REPLACE_MC_VERSION));
             makeStart.addReplacement("@@SRGDIR@@", delayedFile(DIR_MCP_MAPPINGS + "/srgs/"));
             makeStart.addReplacement("@@SRG_NOTCH_SRG@@", delayedFile(SRG_NOTCH_TO_SRG));
@@ -481,7 +453,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
     /**
      * Creates the api SourceSet and configures the classpaths of all the SourceSets to have MC and the MC deps in them.
-     * Also sets the target JDK to java 6
+     * Also sets the target JDK to java 8
      */
     protected void configureCompilation()
     {
@@ -528,8 +500,8 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         project.getDependencies().add(JavaPlugin.COMPILE_CONFIGURATION_NAME, project.fileTree("libs"));
 
         // set the compile target
-        javaConv.setSourceCompatibility("1.6");
-        javaConv.setTargetCompatibility("1.6");
+        javaConv.setSourceCompatibility("1.8");
+        javaConv.setTargetCompatibility("1.8");
     }
 
     /**
@@ -873,31 +845,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
             exec.dependsOn("makeStart");
         }
-
-        if (this.hasServerRun())
-        {
-            JavaExec exec = makeTask("runServer", JavaExec.class);
-            exec.getOutputs().dir(delayedFile(REPLACE_RUN_DIR));
-            exec.setMain(GRADLE_START_SERVER);
-            exec.doFirst(new Action<Task>()
-            {
-                @Override
-                public void execute(Task task)
-                {
-                    ((JavaExec) task).workingDir(delayedFile(REPLACE_RUN_DIR));
-                }
-            });
-            exec.setStandardOutput(System.out);
-            exec.setStandardInput(System.in);
-            exec.setErrorOutput(System.err);
-
-            exec.setGroup("ForgeGradle");
-            exec.setDescription("Runs the Minecraft Server");
-
-            exec.doFirst(makeRunDir);
-
-            exec.dependsOn("makeStart");
-        }
     }
 
     protected final TaskDepDummy getDummyDep(String config, DelayedFile dummy, String taskName)
@@ -973,12 +920,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
     /**
      * This method is called early, and not late.
-     * @return TRUE if a server run config and GradleStartServer should be created.
-     */
-    protected abstract boolean hasServerRun();
-
-    /**
-     * This method is called early, and not late.
      * @return TRUE if a client run config and GradleStart should be created.
      */
     protected abstract boolean hasClientRun();
@@ -995,13 +936,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
      * @return empty string if no tweaker. NEVER NULL.
      */
     protected abstract String getClientTweaker(T ext);
-
-    /**
-     * To be inserted into GradleStartServer. Is called late afterEvaluate or at runtime.
-     * @param ext the Extension object
-     * @return empty string if no tweaker. NEVER NULL.
-     */
-    protected abstract String getServerTweaker(T ext);
 
     /**
      * To be inserted into GradleStart. Is called late afterEvaluate or at runtime.
@@ -1023,96 +957,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
      * @return empty list for no arguments. NEVER NULL.
      */
     protected abstract List<String> getClientJvmArgs(T ext);
-
-    /**
-     * To be inserted into GradleStartServer. Is called late afterEvaluate or at runtime.
-     * @param ext the Extension object
-     * @return empty string if default launchwrapper. NEVER NULL.
-     */
-    protected abstract String getServerRunClass(T ext);
-
-    /**
-     * For run configurations. Is called late afterEvaluate or at runtime.
-     * @param ext the Extension object
-     * @return empty list for no arguments. NEVER NULL.
-     */
-    protected abstract List<String> getServerRunArgs(T ext);
-
-    /**
-     * For run configurations. Is called late afterEvaluate or at runtime.
-     * @param ext the Extension object
-     * @return empty list for no arguments. NEVER NULL.
-     */
-    protected abstract List<String> getServerJvmArgs(T ext);
-
-    /**
-     * Configures the eclipse classpath
-     * Also creates task that generate the eclipse run configs and attaches them to the eclipse task.
-     */
-    protected void configureEclipse()
-    {
-        EclipseModel eclipseConv = (EclipseModel) project.getExtensions().getByName("eclipse");
-        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_MC));
-        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_MC_DEPS));
-        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_START));
-        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_PROVIDED));
-
-        if (this.hasClientRun())
-        {
-            GenEclipseRunTask eclipseClient = makeTask("makeEclipseCleanRunClient", GenEclipseRunTask.class);
-            eclipseClient.setMainClass(GRADLE_START_CLIENT);
-            eclipseClient.setProjectName(project.getName());
-            eclipseClient.setOutputFile(project.file(project.getName() + "_Client.launch"));
-            eclipseClient.setRunDir(delayedFile(REPLACE_RUN_DIR));
-            eclipseClient.dependsOn(TASK_MAKE_START);
-            eclipseClient.doFirst(makeRunDir);
-
-            project.getTasks().getByName("eclipse").dependsOn(eclipseClient);
-            project.getTasks().getByName("cleanEclipse").dependsOn("cleanMakeEclipseCleanRunClient");
-        }
-
-        if (this.hasServerRun())
-        {
-            GenEclipseRunTask eclipseServer = makeTask("makeEclipseCleanRunServer", GenEclipseRunTask.class);
-            eclipseServer.setMainClass(GRADLE_START_SERVER);
-            eclipseServer.setProjectName(project.getName());
-            eclipseServer.setOutputFile(project.file(project.getName() + "_Server.launch"));
-            eclipseServer.setRunDir(delayedFile(REPLACE_RUN_DIR));
-            eclipseServer.dependsOn(TASK_MAKE_START);
-            eclipseServer.doFirst(makeRunDir);
-
-            project.getTasks().getByName("eclipse").dependsOn(eclipseServer);
-            project.getTasks().getByName("cleanEclipse").dependsOn("cleanMakeEclipseCleanRunServer");
-        }
-
-        project.afterEvaluate(new Action<Project>() {
-
-            @Override
-            public void execute(Project project)
-            {
-                if (project.getState().getFailure() != null)
-                    return;
-
-                T ext = getExtension();
-                if (hasClientRun())
-                {
-                    GenEclipseRunTask task = ((GenEclipseRunTask) project.getTasks().getByName("makeEclipseCleanRunClient"));
-                    task.setArguments(Joiner.on(' ').join(getClientRunArgs(ext)));
-                    task.setJvmArguments(Joiner.on(' ').join(getClientJvmArgs(ext)));
-                }
-                if (hasServerRun())
-                {
-                    GenEclipseRunTask task = ((GenEclipseRunTask) project.getTasks().getByName("makeEclipseCleanRunServer"));
-                    task.setArguments(Joiner.on(' ').join(getServerRunArgs(ext)));
-                    task.setJvmArguments(Joiner.on(' ').join(getServerJvmArgs(ext)));
-                }
-            }
-
-        });
-
-        // other dependencies
-        project.getTasks().getByName("eclipseClasspath").dependsOn(TASK_DD_COMPILE, TASK_DD_PROVIDED);
-    }
 
     /**
      * Adds the intellij run configs and makes a few other tweaks to the intellij project creation
@@ -1254,14 +1098,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                         Joiner.on(' ').join(getClientRunArgs(ext)),
                         Joiner.on(' ').join(getClientJvmArgs(ext))
                 } : null,
-
-                this.hasServerRun() ? new String[]
-                {
-                        "Minecraft Server",
-                        GRADLE_START_SERVER,
-                        Joiner.on(' ').join(getServerRunArgs(ext)),
-                        Joiner.on(' ').join(getServerJvmArgs(ext))
-                } : null
+                null
         };
 
         for (String[] data : config)

@@ -38,12 +38,6 @@ public class ClientTweaker extends TweakerPlugin
     }
 
     @Override
-    protected boolean hasServerRun()
-    {
-        return false;
-    }
-
-    @Override
     protected boolean hasClientRun()
     {
         return true;

@@ -95,16 +95,6 @@ public class GenericPatcherUserExtension extends UserBaseExtension
         this.clientTweaker = clientTweaker;
     }
 
-    public String getServerTweaker()
-    {
-        return serverTweaker;
-    }
-
-    public void setServerTweaker(String serverTweaker)
-    {
-        this.serverTweaker = serverTweaker;
-    }
-
     public String getClientRunClass()
     {
         return clientRunClass;
@@ -113,15 +103,5 @@ public class GenericPatcherUserExtension extends UserBaseExtension
     public void setClientRunClass(String clientRunClass)
     {
         this.clientRunClass = clientRunClass;
-    }
-
-    public String getServerRunClass()
-    {
-        return serverRunClass;
-    }
-
-    public void setServerRunClass(String serverRunClass)
-    {
-        this.serverRunClass = serverRunClass;
     }
 }

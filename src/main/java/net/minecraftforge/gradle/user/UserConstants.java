@@ -59,9 +59,7 @@ public class UserConstants
     public static final String TASK_DD_COMPILE        = "deobfCompileDummyTask";
     public static final String TASK_DD_PROVIDED       = "deobfProvidedDummyTask";
 
-    static final String        REPLACE_SERVER_TWEAKER = "{RUN_SERVER_TWEAKER}";
     static final String        REPLACE_CLIENT_TWEAKER = "{RUN_CLIENT_TWEAKER}";
-    static final String        REPLACE_SERVER_MAIN    = "{RUN_SERVER_MAIN}";
     static final String        REPLACE_CLIENT_MAIN    = "{RUN_CLIENT_MAIN}";
     static final String        REPLACE_RUN_DIR        = "{RUN_DIR}";
 

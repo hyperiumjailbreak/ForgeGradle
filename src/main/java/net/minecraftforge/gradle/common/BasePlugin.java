@@ -28,10 +28,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import net.minecraftforge.gradle.util.json.version.ManifestVersion;
 import org.gradle.api.Action;
@@ -57,12 +55,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.reflect.TypeToken;
 
-import gnu.trove.TIntObjectHashMap;
 import groovy.lang.Closure;
 import net.minecraftforge.gradle.tasks.CrowdinDownload;
 import net.minecraftforge.gradle.tasks.Download;
@@ -70,7 +66,6 @@ import net.minecraftforge.gradle.tasks.DownloadAssetsTask;
 import net.minecraftforge.gradle.tasks.EtagDownloadTask;
 import net.minecraftforge.gradle.tasks.ExtractConfigTask;
 import net.minecraftforge.gradle.tasks.GenSrgs;
-import net.minecraftforge.gradle.tasks.JenkinsChangelog;
 import net.minecraftforge.gradle.tasks.MergeJars;
 import net.minecraftforge.gradle.tasks.SignJar;
 import net.minecraftforge.gradle.tasks.SplitJarTask;
@@ -82,9 +77,6 @@ import net.minecraftforge.gradle.util.delayed.DelayedString;
 import net.minecraftforge.gradle.util.delayed.ReplacementProvider;
 import net.minecraftforge.gradle.util.delayed.TokenReplacer;
 import net.minecraftforge.gradle.util.json.JsonFactory;
-import net.minecraftforge.gradle.util.json.fgversion.FGBuildStatus;
-import net.minecraftforge.gradle.util.json.fgversion.FGVersion;
-import net.minecraftforge.gradle.util.json.fgversion.FGVersionWrapper;
 import net.minecraftforge.gradle.util.json.version.Version;
 public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Project>
 {
@@ -155,7 +147,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
             ext.set("Download", Download.class);
             ext.set("EtagDownload", EtagDownloadTask.class);
             ext.set("CrowdinDownload", CrowdinDownload.class);
-            ext.set("JenkinsChangelog", JenkinsChangelog.class);
         }
 
         // repos
@@ -247,19 +238,14 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
         // Check FG Version, unless its disabled
         List<String> lines = Lists.newArrayListWithExpectedSize(5);
-        Object disableUpdateCheck = project.getProperties().get("net.minecraftforge.gradle.disableUpdateChecker");
-        if (!"true".equals(disableUpdateCheck) && !"yes".equals(disableUpdateCheck) && !new Boolean(true).equals(disableUpdateCheck))
-        {
-            doFGVersionCheck(lines);
-        }
 
         if (!displayBanner)
             return;
 
         Logger logger = this.project.getLogger();
         logger.lifecycle("#################################################");
-        logger.lifecycle("         ForgeGradle {}        ", this.getVersionString());
-        logger.lifecycle("  https://github.com/MinecraftForge/ForgeGradle  ");
+        logger.lifecycle("         ForgeGradle 2.1        ");
+        logger.lifecycle("  https://github.com/hyperiumjailbreak/ForgeGradle  ");
         logger.lifecycle("#################################################");
         logger.lifecycle("               Powered by MCP {}               ", this.getExtension().getMcpVersion());
         logger.lifecycle("             http://modcoderpack.com             ");
@@ -271,82 +257,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
             logger.lifecycle(str);
 
         displayBanner = false;
-    }
-
-    private String getVersionString()
-    {
-        String version = this.getClass().getPackage().getImplementationVersion();
-        if (Strings.isNullOrEmpty(version))
-        {
-            version = this.getExtension().forgeGradleVersion + "-unknown";
-        }
-
-        return version;
-    }
-
-    protected void doFGVersionCheck(List<String> outLines)
-    {
-        String version = getExtension().forgeGradleVersion;
-
-        if (version.endsWith("-SNAPSHOT"))
-        {
-            // no version checking necessary if the are on the snapshot already
-            return;
-        }
-
-        final String checkUrl = "https://www.abrarsyed.com/ForgeGradleVersion.json";
-        final File jsonCache = cacheFile("ForgeGradleVersion.json");
-        final File etagFile = new File(jsonCache.getAbsolutePath() + ".etag");
-
-        FGVersionWrapper wrapper = JsonFactory.GSON.fromJson(getWithEtag(checkUrl, jsonCache, etagFile), FGVersionWrapper.class);
-        FGVersion webVersion = wrapper.versionObjects.get(version);
-        String latestVersion = wrapper.versions.get(wrapper.versions.size()-1);
-
-        if (webVersion == null || webVersion.status == FGBuildStatus.FINE)
-        {
-            return;
-        }
-
-        // broken implies outdated
-        if (webVersion.status == FGBuildStatus.BROKEN)
-        {
-            outLines.add("ForgeGradle "+webVersion.version+" HAS " + (webVersion.bugs.length > 1 ? "SERIOUS BUGS" : "a SERIOUS BUG") + "!");
-            outLines.add("UPDATE TO "+latestVersion+" IMMEDIATELY!");
-            outLines.add(" Bugs:");
-            for (String str : webVersion.bugs)
-            {
-                outLines.add(" -- "+str);
-            }
-            outLines.add("****************************");
-            return;
-        }
-        else if (webVersion.status == FGBuildStatus.OUTDATED)
-        {
-            outLines.add("ForgeGradle "+latestVersion + " is out! You should update!");
-            outLines.add(" Features:");
-
-            for (int i = webVersion.index; i < wrapper.versions.size(); i++)
-            {
-                for (String feature : wrapper.versionObjects.get(wrapper.versions.get(i)).changes)
-                {
-                    outLines.add(" -- " + feature);
-                }
-            }
-            outLines.add("****************************");
-        }
-
-        onVersionCheck(webVersion, wrapper);
-    }
-
-    /**
-     * Function to do stuff with the version check json information. Is called afterEvaluate
-     *
-     * @param version The ForgeGradle version
-     * @param wrapper Version wrapper
-     */
-    protected void onVersionCheck(FGVersion version, FGVersionWrapper wrapper)
-    {
-        // not required.. but you probably wanan implement this
     }
 
     @SuppressWarnings("serial")
