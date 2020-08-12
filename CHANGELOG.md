@@ -10,3 +10,4 @@ This document describes changes made in the Hyperium fork of ForgeGradle in orde
 * Remove patcher support
 * Remove access transformer support
 * Code cleanup
+* Remove license plugin
