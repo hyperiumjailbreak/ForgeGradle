@@ -11,3 +11,4 @@ This document describes changes made in the Hyperium fork of ForgeGradle in orde
 * Remove access transformer support
 * Code cleanup
 * Remove license plugin
+* Add gitpod config
