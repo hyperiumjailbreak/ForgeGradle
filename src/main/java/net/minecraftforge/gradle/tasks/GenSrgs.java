@@ -107,31 +107,6 @@ public class GenSrgs extends CachedTask
     private Map<String, String> readExtraSrgs(FileCollection extras, SrgContainer inSrg)
     {
         return Maps.newHashMap(); //Nop this out.
-        /*
-        SrgContainer extraSrg = new SrgContainer().readSrgs(extras);
-        // Need to convert these to Notch-SRG names. and add them to the other one.
-        // These Extra SRGs are in MCP->SRG names as they are denoting dev time values.
-        // So we need to swap the values we get.
-
-        HashMap<String, String> excRemap = new HashMap<String, String>(extraSrg.methodMap.size());
-
-        // SRG -> notch map
-        Map<String, String> classMap = inSrg.classMap.inverse();
-        Map<MethodData, MethodData> methodMap = inSrg.methodMap.inverse();
-
-        // rename methods
-        for (Entry<MethodData, MethodData> e : extraSrg.methodMap.inverse().entrySet())
-        {
-            String notchSig = remapSig(e.getValue().sig, classMap);
-            String notchName = remapMethodName(e.getKey().name, notchSig, classMap, methodMap);
-            //getProject().getLogger().lifecycle(e.getKey().name + " " + e.getKey().sig + " " + e.getValue().name + " " + e.getValue().sig);
-            //getProject().getLogger().lifecycle(notchName       + " " + notchSig       + " " + e.getValue().name + " " + e.getValue().sig);
-            inSrg.methodMap.put(new MethodData(notchName, notchSig), e.getValue());
-            excRemap.put(e.getKey().name, e.getValue().name);
-        }
-
-        return excRemap;
-        */
     }
 
     private void writeOutSrgs(SrgContainer inSrg, Map<String, String> methods, Map<String, String> fields) throws IOException

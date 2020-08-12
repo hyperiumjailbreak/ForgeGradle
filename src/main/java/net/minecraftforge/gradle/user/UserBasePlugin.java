@@ -64,13 +64,11 @@ import org.gradle.api.plugins.MavenPluginConvention;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.JavaExec;
-import org.gradle.api.tasks.ScalaSourceSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
@@ -151,7 +149,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         // Quality of life stuff for the users
         createSourceCopyTasks();
         doDevTimeDeobf();
-        doDepAtExtraction();
         configureRetromapping();
         makeRunTasks();
 
@@ -195,9 +192,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                 t.include(getExtension().getIncludes());
             }
         });
-
-        // add access transformers to deobf tasks
-        addAtsToDeobf();
 
         if (ext.getMakeObfSourceJar())
         {
@@ -536,23 +530,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                     compile.setSource(dir);
                 }
 
-                // scala
-                if (project.getPlugins().hasPlugin("scala"))
-                {
-                    ScalaSourceSet langSet = (ScalaSourceSet) new DslObject(set).getConvention().getPlugins().get("scala");
-                    File dir = new File(dirRoot, "scala");
-
-                    task = makeTask(taskPrefix+"Scala", TaskSourceCopy.class);
-                    task.setSource(langSet.getScala());
-                    task.setOutput(dir);
-
-                    // must get replacements from extension afterEValuate()
-
-                    ScalaCompile compile = (ScalaCompile) project.getTasks().getByName(set.getCompileTaskName("scala"));
-                    compile.dependsOn(task);
-                    compile.setSource(dir);
-                }
-
                 // groovy
                 if (project.getPlugins().hasPlugin("groovy"))
                 {
@@ -683,38 +660,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         baseDir + "/" + group.replace('.', '/') + "/" + name + "/" + version + "/" +
                 name + "-" + version + (Strings.isNullOrEmpty(classifier) ? "" : "-" + classifier) + ".jar");
     }
-    
-    protected void doDepAtExtraction()
-    {
-        TaskExtractDepAts extract = makeTask(TASK_EXTRACT_DEP_ATS, TaskExtractDepAts.class);
-        extract.addCollection("compile");
-        extract.addCollection(CONFIG_PROVIDED);
-        extract.addCollection(CONFIG_DEOBF_COMPILE);
-        extract.addCollection(CONFIG_DEOBF_PROVIDED);
-        extract.setOutputDir(delayedFile(DIR_DEP_ATS));
-        extract.onlyIf(new Spec<Object>() {
-            @Override
-            public boolean isSatisfiedBy(Object arg0)
-            {
-                return getExtension().isUseDepAts();
-            }
-        });
-        extract.doLast(new Action<Task>() {
-            @Override public void execute(Task task)
-            {
-                DeobfuscateJar binDeobf = (DeobfuscateJar) task.getProject().getTasks().getByName(TASK_DEOBF_BIN);
-                DeobfuscateJar decompDeobf = (DeobfuscateJar) task.getProject().getTasks().getByName(TASK_DEOBF);
-
-                for (File file : task.getProject().fileTree(delayedFile(DIR_DEP_ATS)))
-                {
-                    binDeobf.addAt(file);
-                    decompDeobf.addAt(file);
-                }
-            }
-        });
-
-        getExtension().atSource(delayedFile(DIR_DEP_ATS));
-    }
 
     protected void configureRetromapping()
     {
@@ -805,19 +750,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                     return new ArrayList<File>();
             }
         });
-
-        // get scala sources too
-        project.afterEvaluate(new Action<Project>()
-        {
-            @Override public void execute(Project project)
-            {
-                if (project.getPlugins().hasPlugin("scala"))
-                {
-                    ScalaSourceSet langSet = (ScalaSourceSet) new DslObject(main).getConvention().getPlugins().get("scala");
-                    sourceJar.from(langSet.getAllScala());
-                }
-            }
-        });
     }
 
     protected void makeRunTasks()
@@ -884,31 +816,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
             return file.isFile() && file.getName().toLowerCase().endsWith("_at.cfg");
         }
     };
-
-    protected void addAtsToDeobf()
-    {
-        // add src ATs
-        DeobfuscateJar binDeobf = (DeobfuscateJar) project.getTasks().getByName(TASK_DEOBF_BIN);
-        DeobfuscateJar decompDeobf = (DeobfuscateJar) project.getTasks().getByName(TASK_DEOBF);
-
-        // ATs from the ExtensionObject
-        Object[] extAts = getExtension().getAccessTransformers().toArray();
-        binDeobf.addAts(extAts);
-        decompDeobf.addAts(extAts);
-
-        // grab ATs from configured resource dirs
-        boolean addedAts = getExtension().isUseDepAts();
-
-        for (File at : getExtension().getResolvedAccessTransformerSources().filter(AT_SPEC).getFiles())
-        {
-            project.getLogger().lifecycle("Found AccessTransformer: {}", at.getName());
-            binDeobf.addAt(at);
-            decompDeobf.addAt(at);
-            addedAts = true;
-        }
-
-        useLocalCache = useLocalCache || addedAts;
-    }
 
     /**
      * This method should add the MC dependency to the supplied config, as well as do any extra configuration that requires the provided information.

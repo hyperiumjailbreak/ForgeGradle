@@ -174,7 +174,7 @@ public class MergeJars extends CachedTask
                 {
                     cInJar.close();
                 }
-                catch (IOException e)
+                catch (IOException ignored)
                 {}
             }
 
@@ -184,7 +184,7 @@ public class MergeJars extends CachedTask
                 {
                     sInJar.close();
                 }
-                catch (IOException e)
+                catch (IOException ignored)
                 {}
             }
             if (outJar != null)
@@ -193,7 +193,7 @@ public class MergeJars extends CachedTask
                 {
                     outJar.close();
                 }
-                catch (IOException e)
+                catch (IOException ignored)
                 {}
             }
 
@@ -260,12 +260,6 @@ public class MergeJars extends CachedTask
             }
             if (entry.isDirectory())
             {
-                /*
-                 * if (!resources.contains(entryName))
-                 * {
-                 * outFile.putNextEntry(entry);
-                 * }
-                 */
                 continue;
             }
 
@@ -289,7 +283,6 @@ public class MergeJars extends CachedTask
 
     private byte[] getClassBytes(String name) throws IOException
     {
-        // @TODO: rewrite.
         InputStream classStream = null;
         try
         {
@@ -326,8 +319,7 @@ public class MergeJars extends CachedTask
         if (o.name == null && o2.name != null) return false;
         if (o.name != null && !o.name.equals(o2.name)) return false;
         if (o.outerName == null && o2.outerName != null) return false;
-        if (o.outerName != null && o.outerName.equals(o2.outerName)) return false;
-        return true;
+        return o.outerName == null || !o.outerName.equals(o2.outerName);
     }
     private static boolean contains(List<InnerClassNode> list, InnerClassNode node)
     {

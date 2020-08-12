@@ -162,11 +162,6 @@ public class EtagDownloadTask extends DefaultTask
         this.file = file;
     }
 
-    public boolean isDieWithError()
-    {
-        return dieWithError;
-    }
-
     public void setDieWithError(boolean dieWithError)
     {
         this.dieWithError = dieWithError;

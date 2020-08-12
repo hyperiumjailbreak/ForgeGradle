@@ -118,12 +118,6 @@ public final class ContextualPatch
         return this;
     }
 
-    public ContextualPatch setWhitespaceC14N(boolean canonicalize)
-    {
-        this.c14nWhitespace = canonicalize;
-        return this;
-    }
-
     public ContextualPatch setAccessC14N(boolean canonicalize)
     {
         this.c14nAccess = canonicalize;
@@ -176,7 +170,7 @@ public final class ContextualPatch
                 {
                     patchReader.close();
                 }
-                catch (IOException e)
+                catch (IOException ignored)
                 {
                 }
             }
@@ -1165,11 +1159,6 @@ public final class ContextualPatch
             return target;
         }
 
-        public boolean isBinary()
-        {
-            return binary;
-        }
-
         public PatchStatus getStatus()
         {
             return status;
@@ -1186,11 +1175,11 @@ public final class ContextualPatch
         }
     }
 
-    public static interface IContextProvider
+    public interface IContextProvider
     {
-        public List<String> getData(String target);
+        List<String> getData(String target);
 
-        public void setData(String target, List<String> data);
+        void setData(String target, List<String> data);
     }
 
     public static class HunkReport

@@ -55,10 +55,4 @@ public abstract class CachedTask extends DefaultTask implements ICachableTask
         this.cacheSet = true;
         this.doesCache = cacheStuff;
     }
-
-    @Override
-    public boolean cacheClassHash()
-    {
-        return false;
-    }
 }

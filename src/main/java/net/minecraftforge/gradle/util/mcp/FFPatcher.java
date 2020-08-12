@@ -28,7 +28,6 @@ import com.google.code.regexp.Matcher;
 import com.google.code.regexp.Pattern;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 
 public class FFPatcher
 {
@@ -60,45 +59,11 @@ public class FFPatcher
     public static String processFile(String text)
     {
         StringBuffer out = new StringBuffer();
-//        Matcher m = SYNTHETICS.matcher(text);
-//        while(m.find())
-//        {
-//            m.appendReplacement(out, synthetic_replacement(m).replace("$", "\\$"));
-//        }
-//        m.appendTail(out);
-//        text = out.toString();
-//
+
         text = text.replaceAll(TRAILING, "");
-//
-//        text = text.replaceAll(TRAILINGZERO, "$1$2");
-//
-//        List<String> lines = Lists.newArrayList(Constants.lines(text));
-//
-//        processClass(lines, "", 0, "", ""); // mutates the list
-//        text = Joiner.on(Constants.NEWLINE).join(lines);
-//
+
         text = text.replaceAll(NEWLINES, Constants.NEWLINE);
         return text;
-//        text = text.replaceAll(EMPTY_SUPER, "");
-//
-        // fix interfaces (added 1.7.10+)
-//        out = new StringBuffer();
-//
-//        List<String> lines = Constants.lines(text);
-//        for (String line : lines) {
-//            if (line.trim().endsWith(";")) {
-//                Matcher m = ABSTRACT.matcher(line);
-//                while (m.find())
-//                {
-//                    m.appendReplacement(out, abstract_replacement(m).replace("$", "\\$"));
-//                }
-//                m.appendTail(out).append(Constants.NEWLINE);
-//            } else {
-//                out.append(line).append(Constants.NEWLINE);
-//            }
-//        }
-////
-//        return out.toString();
     }
 
     private static int processClass(List<String> lines, String indent, int startIndex, String qualifiedName, String simpleName)

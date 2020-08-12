@@ -140,11 +140,8 @@ public class DownloadAssetsTask extends DefaultTask
         
         if (file.length() != size)
             return true;
-        
-        if (!expectedHash.equalsIgnoreCase(Constants.hash(file, "SHA1")))
-            return true;
-        
-        return false;
+
+        return !expectedHash.equalsIgnoreCase(Constants.hash(file, "SHA1"));
     }
 
     private static class GetAssetTask implements Callable<Boolean>

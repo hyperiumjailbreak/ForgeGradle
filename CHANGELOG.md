@@ -5,3 +5,8 @@ This document describes changes made in the Hyperium fork of ForgeGradle in orde
 * Update java target to JDK 8
 * Remove javadoc build
 * Remove eclipse support
+* Remove MC server support
+* Remove curse/liteloader support
+* Remove patcher support
+* Remove access transformer support
+* Code cleanup

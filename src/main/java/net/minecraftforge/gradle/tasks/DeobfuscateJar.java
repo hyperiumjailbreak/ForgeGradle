@@ -19,46 +19,15 @@
  */
 package net.minecraftforge.gradle.tasks;
 
-import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
-import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.zip.ZipFile;
-
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
-
 import de.oceanlabs.mcp.mcinjector.LVTNaming;
 import de.oceanlabs.mcp.mcinjector.MCInjectorImpl;
 import groovy.lang.Closure;
-import net.md_5.specialsource.AccessMap;
-import net.md_5.specialsource.Jar;
-import net.md_5.specialsource.JarMapping;
-import net.md_5.specialsource.JarRemapper;
-import net.md_5.specialsource.RemapperProcessor;
+import net.md_5.specialsource.*;
 import net.md_5.specialsource.provider.JarProvider;
 import net.md_5.specialsource.provider.JointProvider;
 import net.minecraftforge.gradle.common.Constants;
@@ -67,6 +36,14 @@ import net.minecraftforge.gradle.util.caching.CachedTask;
 import net.minecraftforge.gradle.util.json.JsonFactory;
 import net.minecraftforge.gradle.util.json.MCInjectorStruct;
 import net.minecraftforge.gradle.util.json.MCInjectorStruct.InnerClass;
+import org.gradle.api.tasks.*;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.zip.ZipFile;
 
 public class DeobfuscateJar extends CachedTask
 {
@@ -97,9 +74,6 @@ public class DeobfuscateJar extends CachedTask
 
     private Object            outJar;
 
-    @InputFiles
-    private ArrayList<Object> ats           = Lists.newArrayList();
-
     private Object            log;
 
     @TaskAction
@@ -109,16 +83,9 @@ public class DeobfuscateJar extends CachedTask
         File tempObfJar = new File(getTemporaryDir(), "deobfed.jar"); // courtesy of gradle temp dir.
         File out = getOutJar();
 
-        // make the ATs list.. its a Set to avoid duplication.
-        Set<File> ats = new HashSet<File>();
-        for (Object obj : this.ats)
-        {
-            ats.add(getProject().file(obj).getCanonicalFile());
-        }
-
         // deobf
         getLogger().lifecycle("Applying SpecialSource...");
-        deobfJar(getInJar(), tempObfJar, getSrg(), ats);
+        deobfJar(getInJar(), tempObfJar, getSrg());
 
         File log = getLog();
         if (log == null)
@@ -126,10 +93,10 @@ public class DeobfuscateJar extends CachedTask
 
         // apply exceptor
         getLogger().lifecycle("Applying Exceptor...");
-        applyExceptor(tempObfJar, out, getExceptorCfg(), log, ats);
+        applyExceptor(tempObfJar, out, getExceptorCfg(), log);
     }
 
-    private void deobfJar(File inJar, File outJar, File srg, Collection<File> ats) throws IOException
+    private void deobfJar(File inJar, File outJar, File srg) throws IOException
     {
         // load mapping
         JarMapping mapping = new JarMapping();
@@ -137,15 +104,6 @@ public class DeobfuscateJar extends CachedTask
 
         // load in ATs
         ErroringRemappingAccessMap accessMap = new ErroringRemappingAccessMap(new File[] { getMethodCsv(), getFieldCsv() });
-
-        getLogger().info("Using AccessTransformers...");
-        //Make SS shutup about access maps
-        for (File at : ats)
-        {
-            getLogger().info("" + at);
-            accessMap.loadAccessTransformer(at);
-        }
-        //        System.setOut(tmp);
 
         // make a processor out of the ATS and mappings.
         RemapperProcessor srgProcessor = new RemapperProcessor(null, mapping, null);
@@ -173,100 +131,16 @@ public class DeobfuscateJar extends CachedTask
             {
                 getLogger().error(" ---  {}", line);
             }
-
-            // TODO: add info for disabling
-
-            throw new RuntimeException("Your Access Transformers be broke!");
         }
     }
 
-    private int fixAccess(int access, String target)
-    {
-        int ret = access & ~7;
-        int t = 0;
-
-        if (target.startsWith("public"))
-            t = ACC_PUBLIC;
-        else if (target.startsWith("private"))
-            t = ACC_PRIVATE;
-        else if (target.startsWith("protected"))
-            t = ACC_PROTECTED;
-
-        switch (access & 7)
-            {
-                case ACC_PRIVATE:
-                    ret |= t;
-                    break;
-                case 0:
-                    ret |= (t != ACC_PRIVATE ? t : 0);
-                    break;
-                case ACC_PROTECTED:
-                    ret |= (t != ACC_PRIVATE && t != 0 ? t : ACC_PROTECTED);
-                    break;
-                case ACC_PUBLIC:
-                    ret |= ACC_PUBLIC;
-                    break;
-            }
-
-        if (target.endsWith("-f"))
-            ret &= ~ACC_FINAL;
-        else if (target.endsWith("+f"))
-            ret |= ACC_FINAL;
-        return ret;
-    }
-
-    public void applyExceptor(File inJar, File outJar, File config, File log, Set<File> ats) throws IOException
+    public void applyExceptor(File inJar, File outJar, File config, File log) throws IOException
     {
         String json = null;
         File getJson = getExceptorJson();
         if (getJson != null)
         {
             final Map<String, MCInjectorStruct> struct = JsonFactory.loadMCIJson(getJson);
-            for (File at : ats)
-            {
-                getLogger().info("loading AT: " + at.getCanonicalPath());
-
-                Files.readLines(at, Charset.defaultCharset(), new LineProcessor<Object>()
-                {
-                    @Override
-                    public boolean processLine(String line) throws IOException
-                    {
-                        if (line.indexOf('#') != -1)
-                            line = line.substring(0, line.indexOf('#'));
-                        line = line.trim().replace('.', '/');
-                        if (line.isEmpty())
-                            return true;
-
-                        String[] s = line.split(" ");
-                        if (s.length == 2 && s[1].indexOf('$') > 0)
-                        {
-                            String parent = s[1].substring(0, s[1].indexOf('$'));
-                            for (MCInjectorStruct cls : new MCInjectorStruct[] { struct.get(parent), struct.get(s[1]) })
-                            {
-                                if (cls != null && cls.innerClasses != null)
-                                {
-                                    for (InnerClass inner : cls.innerClasses)
-                                    {
-                                        if (inner.inner_class.equals(s[1]))
-                                        {
-                                            int access = fixAccess(inner.getAccess(), s[0]);
-                                            inner.access = (access == 0 ? null : Integer.toHexString(access));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        return true;
-                    }
-
-                    @Override
-                    public Object getResult()
-                    {
-                        return null;
-                    }
-                });
-            }
 
             // Remove unknown classes from configuration
             removeUnknownClasses(inJar, struct);
@@ -372,16 +246,6 @@ public class DeobfuscateJar extends CachedTask
         this.applyMarkers = applyMarkers;
     }
 
-    public boolean isFailOnAtError()
-    {
-        return failOnAtError;
-    }
-
-    public void setFailOnAtError(boolean failOnAtError)
-    {
-        this.failOnAtError = failOnAtError;
-    }
-
     public File getInJar()
     {
         return getProject().file(inJar);
@@ -445,44 +309,6 @@ public class DeobfuscateJar extends CachedTask
                 return getOutJar();
             }
         };
-    }
-
-    /**
-     * adds an access transformer to the deobfuscation of this
-     * @param obj access transformers
-     */
-    public void addAt(Object obj)
-    {
-        ats.add(obj);
-    }
-    
-    /**
-     * adds access transformers to the deobfuscation of this
-     * @param objs access transformers
-     */
-    public void addAts(Object... objs)
-    {
-        for (Object object : objs)
-        {
-            ats.add(object);
-        }
-    }
-    
-    /**
-     * adds access transformers to the deobfuscation of this
-     * @param objs access transformers
-     */
-    public void addAts(Iterable<Object> objs)
-    {
-        for (Object object : objs)
-        {
-            ats.add(object);
-        }
-    }
-    
-    public FileCollection getAts()
-    {
-        return getProject().files(ats.toArray());
     }
 
     public File getFieldCsv()

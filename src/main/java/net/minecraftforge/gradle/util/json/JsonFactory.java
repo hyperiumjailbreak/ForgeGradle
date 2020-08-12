@@ -36,9 +36,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
-import net.minecraftforge.gradle.util.json.LiteLoaderJson.VersionObject;
-import net.minecraftforge.gradle.util.json.fgversion.FGVersionDeserializer;
-import net.minecraftforge.gradle.util.json.fgversion.FGVersionWrapper;
 import net.minecraftforge.gradle.util.json.version.AssetIndex;
 import net.minecraftforge.gradle.util.json.version.ManifestVersion;
 import net.minecraftforge.gradle.util.json.version.Version;
@@ -53,9 +50,6 @@ public class JsonFactory
         builder.registerTypeAdapterFactory(new EnumAdaptorFactory());
         builder.registerTypeAdapter(Date.class, new DateAdapter());
         builder.registerTypeAdapter(File.class, new FileAdapter());
-        builder.registerTypeAdapter(VersionObject.class, new LiteLoaderJson.VersionAdapter());
-        builder.registerTypeAdapter(FGVersionWrapper.class, new FGVersionDeserializer());
-        builder.registerTypeAdapter(FGVersionWrapper.class, new FGVersionDeserializer());
         builder.registerTypeAdapter(new TypeToken<Map<String, ManifestVersion>>() {}.getType(), new MojangManifestAdapter());
         builder.enableComplexMapKeySerialization();
         builder.setPrettyPrinting();
@@ -142,11 +136,6 @@ public class JsonFactory
         AssetIndex a = GSON.fromJson(reader, AssetIndex.class);
         reader.close();
         return a;
-    }
-
-    public static LiteLoaderJson loadLiteLoaderJson(String json) throws JsonSyntaxException, JsonIOException
-    {
-        return GSON.fromJson(json, LiteLoaderJson.class).addDefaultArtifacts();
     }
 
     public static Map<String, MCInjectorStruct> loadMCIJson(File json) throws IOException

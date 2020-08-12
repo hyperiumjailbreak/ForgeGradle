@@ -44,6 +44,7 @@ import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import net.minecraftforge.gradle.user.UserBasePlugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.w3c.dom.Document;
@@ -59,7 +60,6 @@ import com.google.common.io.Files;
 import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
 import groovy.lang.Closure;
-import net.minecraftforge.gradle.patcher.PatcherExtension;
 import net.minecraftforge.gradle.util.json.version.OS;
 
 public class Constants
@@ -204,7 +204,7 @@ public class Constants
     // helper methods
     public static List<String> getClassPath()
     {
-        URL[] urls = ((URLClassLoader) PatcherExtension.class.getClassLoader()).getURLs();
+        URL[] urls = ((URLClassLoader) UserBasePlugin.class.getClassLoader()).getURLs();
 
         ArrayList<String> list = new ArrayList<String>();
         for (URL url : urls)

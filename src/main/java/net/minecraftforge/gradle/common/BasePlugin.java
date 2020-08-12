@@ -54,7 +54,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.google.gson.reflect.TypeToken;
@@ -81,7 +80,6 @@ import net.minecraftforge.gradle.util.json.version.Version;
 public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Project>
 {
     public Project       project;
-    public BasePlugin<?> otherPlugin;
     public ReplacementProvider replacer = new ReplacementProvider();
 
     private Map<String, ManifestVersion> mcManifest;
@@ -216,9 +214,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         {
             throw new GradleConfigurationException("You must set the Minecraft version!");
         }
-//        JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
-//        ApplyFernFlowerTask ffTask = ((ApplyFernFlowerTask) project.getTasks().getByName("decompileJar"));
-//        ffTask.setClasspath(javaConv.getSourceSets().getByName("main").getCompileClasspath());
 
         // http://files.minecraftforge.net/maven/de/oceanlabs/mcp/mcp/1.7.10/mcp-1.7.10-srg.zip
         project.getDependencies().add(CONFIG_MAPPINGS, ImmutableMap.of(
@@ -236,9 +231,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 "ext", "zip"
                 ));
 
-        // Check FG Version, unless its disabled
-        List<String> lines = Lists.newArrayListWithExpectedSize(5);
-
         if (!displayBanner)
             return;
 
@@ -252,9 +244,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         logger.lifecycle("         by: Searge, ProfMobius, Fesh0r,         ");
         logger.lifecycle("         R4wk, ZeuX, IngisKahn, bspkrs           ");
         logger.lifecycle("#################################################");
-
-        for (String str : lines)
-            logger.lifecycle(str);
 
         displayBanner = false;
     }

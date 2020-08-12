@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 
 public class TokenReplacer implements Serializable
 {
-    private static final long serialVersionUID = 1L;
-
     protected static Logger LOGGER = LoggerFactory.getLogger(DelayedBase.class);
 
     private final ReplacementProvider provider;
