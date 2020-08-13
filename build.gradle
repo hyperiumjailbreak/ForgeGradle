@@ -9,13 +9,12 @@ buildscript {
     }
 }
 
-
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: "com.gradle.plugin-publish"
 
-group = 'net.minecraftforge.gradle'
+group = 'com.hyperiumjailbreak.gradle'
 version = '2.1-SNAPSHOT'
 archivesBaseName = 'ForgeGradle'
 targetCompatibility = '1.8'
@@ -120,12 +119,12 @@ artifacts {
 pluginBundle {
     website = 'http://www.gradle.org/'
     vcsUrl = 'https://github.com/hyperiumjailbreak/ForgeGradle'
-    description = 'Gradle plugin for all Minecraft mod development needs'
-    tags = ['forge', 'minecraft', 'minecraftforge', 'mcp']
+    description = 'Gradle plugin for HyperiumJailbreak'
+    tags = ['forge', 'minecraft', 'minecraftforge']
 
     plugins {
-        tweakerClient {
-            id = 'net.minecraftforge.gradle.tweaker-client'
+        minecraftTweaker {
+            id = 'com.hyperiumjailbreak.minecraft-tweaker'
             displayName = 'Minecraft Client Tweaker Plugin'
         }
     }
