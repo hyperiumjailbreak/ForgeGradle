@@ -146,7 +146,6 @@ public class Constants
     public static final String JSON_VERSION     = DIR_JSONS + "/" + REPLACE_MC_VERSION + ".json";
 
     public static final String GRADLE_START_CLIENT = "GradleStart";
-    public static final String GRADLE_START_SERVER = "GradleStartServer";
 
     public static final String[] GRADLE_START_RESOURCES = new String[] {
             "GradleStart.java",
@@ -275,7 +274,7 @@ public class Constants
     }
 
     /**
-     * This method constructs,, configures and returns a CSV reader instance to be used to read MCP CSV files.
+     * This method constructs, configures and returns a CSV reader instance to be used to read MCP CSV files.
      * @param file File to read
      * @return a configured CSVReader
      * @throws IOException Propogated from openning the file

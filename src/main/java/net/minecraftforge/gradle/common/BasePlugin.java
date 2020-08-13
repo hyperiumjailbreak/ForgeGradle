@@ -59,7 +59,6 @@ import com.google.common.io.Files;
 import com.google.gson.reflect.TypeToken;
 
 import groovy.lang.Closure;
-import net.minecraftforge.gradle.tasks.CrowdinDownload;
 import net.minecraftforge.gradle.tasks.Download;
 import net.minecraftforge.gradle.tasks.DownloadAssetsTask;
 import net.minecraftforge.gradle.tasks.EtagDownloadTask;
@@ -144,7 +143,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
             ext.set("SignJar", SignJar.class);
             ext.set("Download", Download.class);
             ext.set("EtagDownload", EtagDownloadTask.class);
-            ext.set("CrowdinDownload", CrowdinDownload.class);
         }
 
         // repos
@@ -236,8 +234,8 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
         Logger logger = this.project.getLogger();
         logger.lifecycle("#################################################");
-        logger.lifecycle("         ForgeGradle 2.1        ");
-        logger.lifecycle("  https://github.com/hyperiumjailbreak/ForgeGradle  ");
+        logger.lifecycle("               ForgeGradle 2.1                   ");
+        logger.lifecycle(" https://github.com/hyperiumjailbreak/ForgeGradle");
         logger.lifecycle("#################################################");
         logger.lifecycle("               Powered by MCP {}               ", this.getExtension().getMcpVersion());
         logger.lifecycle("             http://modcoderpack.com             ");
@@ -420,7 +418,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         {
             clearCache.delete(delayedFile(REPLACE_CACHE_DIR), delayedFile(DIR_LOCAL_CACHE));
             clearCache.setGroup(GROUP_FG);
-            clearCache.setDescription("Cleares the ForgeGradle cache. DONT RUN THIS unless you want a fresh start, or the dev tells you to.");
+            clearCache.setDescription("Cleares the ForgeGradle cache.");
         }
     }
 

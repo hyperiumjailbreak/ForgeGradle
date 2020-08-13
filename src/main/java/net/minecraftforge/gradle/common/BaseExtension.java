@@ -19,7 +19,6 @@
  */
 package net.minecraftforge.gradle.common;
 
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,9 +27,7 @@ import org.gradle.api.Project;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Resources;
 
-import gnu.trove.TIntObjectHashMap;
 import net.minecraftforge.gradle.util.GradleConfigurationException;
 import net.minecraftforge.gradle.util.delayed.ReplacementProvider;
 
@@ -58,25 +55,7 @@ public abstract class BaseExtension
         this.project = plugin.project;
         this.replacer = plugin.replacer;
 
-        String version;
-        try
-        {
-            URL url = BaseExtension.class.getClassLoader().getResource("forgegradle.version.txt");
-            version = Resources.toString(url, Constants.CHARSET).trim();
-
-            if (version.equals("${version}"))
-            {
-                version = "2.1-SNAPSHOT";// fallback
-            }
-
-        }
-        catch (Exception e)
-        {
-            // again, the fallback
-            version = "2.0-SNAPSHOT";
-        }
-
-        forgeGradleVersion = version;
+        forgeGradleVersion = "2.1-SNAPSHOT";
     }
 
     /**

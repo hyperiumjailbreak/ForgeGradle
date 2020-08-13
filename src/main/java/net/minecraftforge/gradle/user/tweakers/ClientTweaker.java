@@ -36,10 +36,4 @@ public class ClientTweaker extends TweakerPlugin
     {
         super.makeDecompTasks(globalPattern, localPattern, delayedFile(JAR_CLIENT_FRESH), TASK_DL_CLIENT, delayedFile(MCP_PATCHES_CLIENT));
     }
-
-    @Override
-    protected boolean hasClientRun()
-    {
-        return true;
-    }
 }

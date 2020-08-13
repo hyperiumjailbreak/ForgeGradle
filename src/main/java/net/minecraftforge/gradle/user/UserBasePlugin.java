@@ -61,7 +61,6 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.MavenPluginConvention;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
@@ -216,24 +215,20 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
             col.builtBy(TASK_MAKE_START);
             project.getDependencies().add(CONFIG_START, col);
         }
-        // TODO: do some GradleStart stuff based on the MC version?
 
         // run task stuff
         // Add the mod and stuff to the classpath of the exec tasks.
         final Jar jarTask = (Jar) project.getTasks().getByName("jar");
 
-        if (this.hasClientRun())
-        {
-            JavaExec exec = (JavaExec) project.getTasks().getByName("runClient");
-            exec.classpath(project.getConfigurations().getByName("runtime"));
-            exec.classpath(project.getConfigurations().getByName(CONFIG_MC));
-            exec.classpath(project.getConfigurations().getByName(CONFIG_MC_DEPS));
-            exec.classpath(project.getConfigurations().getByName(CONFIG_START));
-            exec.classpath(jarTask.getArchivePath());
-            exec.dependsOn(jarTask);
-            exec.jvmArgs(getClientJvmArgs(getExtension()));
-            exec.args(getClientRunArgs(getExtension()));
-        }
+        JavaExec exec = (JavaExec) project.getTasks().getByName("runClient");
+        exec.classpath(project.getConfigurations().getByName("runtime"));
+        exec.classpath(project.getConfigurations().getByName(CONFIG_MC));
+        exec.classpath(project.getConfigurations().getByName(CONFIG_MC_DEPS));
+        exec.classpath(project.getConfigurations().getByName(CONFIG_START));
+        exec.classpath(jarTask.getArchivePath());
+        exec.dependsOn(jarTask);
+        exec.jvmArgs(getClientJvmArgs(getExtension()));
+        exec.args(getClientRunArgs(getExtension()));
 
         // complain about version number
         // blame cazzar if this regex doesnt work
@@ -340,18 +335,15 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         {
             makeStart.addResource(GRADLE_START_RESOURCES[2]); // gradle start common.
 
-            if (this.hasClientRun())
-            {
-                makeStart.addResource(GRADLE_START_RESOURCES[0]); // gradle start
+            makeStart.addResource(GRADLE_START_RESOURCES[0]); // gradle start
 
-                makeStart.addReplacement("@@ASSETINDEX@@", delayedString(REPLACE_ASSET_INDEX));
-                makeStart.addReplacement("@@ASSETSDIR@@", delayedFile(REPLACE_CACHE_DIR + "/assets"));
-                makeStart.addReplacement("@@NATIVESDIR@@", delayedFile(DIR_NATIVES));
-                makeStart.addReplacement("@@TWEAKERCLIENT@@", delayedString(REPLACE_CLIENT_TWEAKER));
-                makeStart.addReplacement("@@BOUNCERCLIENT@@", delayedString(REPLACE_CLIENT_MAIN));
+            makeStart.addReplacement("@@ASSETINDEX@@", delayedString(REPLACE_ASSET_INDEX));
+            makeStart.addReplacement("@@ASSETSDIR@@", delayedFile(REPLACE_CACHE_DIR + "/assets"));
+            makeStart.addReplacement("@@NATIVESDIR@@", delayedFile(DIR_NATIVES));
+            makeStart.addReplacement("@@TWEAKERCLIENT@@", delayedString(REPLACE_CLIENT_TWEAKER));
+            makeStart.addReplacement("@@BOUNCERCLIENT@@", delayedString(REPLACE_CLIENT_MAIN));
 
-                makeStart.dependsOn(TASK_DL_ASSET_INDEX, TASK_DL_ASSETS, TASK_EXTRACT_NATIVES);
-            }
+            makeStart.dependsOn(TASK_DL_ASSET_INDEX, TASK_DL_ASSETS, TASK_EXTRACT_NATIVES);
 
             makeStart.addReplacement("@@MCVERSION@@", delayedString(REPLACE_MC_VERSION));
             makeStart.addReplacement("@@SRGDIR@@", delayedFile(DIR_MCP_MAPPINGS + "/srgs/"));
@@ -430,7 +422,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
      * This method is called sufficiently late. Either afterEvaluate or inside a task, thus it has the extension object.
      * This method is called to decide whether or not to use the project-local cache instead of the global cache.
      * The actual locations of each cache are specified elsewhere.
-     * TODO: add see annotations
      * @param extension The extension object of this plugin
      * @return whether or not to use the local cache
      */
@@ -693,9 +684,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                 retromap.setRangeMap(rangeMap);
                 retromap.dependsOn(TASK_GENERATE_SRGS, extractRangemap);
 
-                // TODO: add replacing extract task
-
-
                 // for replaced sources
                 rangeMap = delayedFile(getSourceSetFormatted(set, TMPL_RANGEMAP_RPL));
                 retroMapped = delayedFile(getSourceSetFormatted(set, TMPL_RETROMAPED_RPL));
@@ -754,29 +742,26 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
     protected void makeRunTasks()
     {
-        if (this.hasClientRun())
+        JavaExec exec = makeTask("runClient", JavaExec.class);
+        exec.getOutputs().dir(delayedFile(REPLACE_RUN_DIR));
+        exec.setMain(GRADLE_START_CLIENT);
+        exec.doFirst(new Action<Task>()
         {
-            JavaExec exec = makeTask("runClient", JavaExec.class);
-            exec.getOutputs().dir(delayedFile(REPLACE_RUN_DIR));
-            exec.setMain(GRADLE_START_CLIENT);
-            exec.doFirst(new Action<Task>()
+            @Override
+            public void execute(Task task)
             {
-                @Override
-                public void execute(Task task)
-                {
-                    ((JavaExec) task).workingDir(delayedFile(REPLACE_RUN_DIR));
-                }
-            });
-            exec.setStandardOutput(System.out);
-            exec.setErrorOutput(System.err);
+                ((JavaExec) task).workingDir(delayedFile(REPLACE_RUN_DIR));
+            }
+        });
+        exec.setStandardOutput(System.out);
+        exec.setErrorOutput(System.err);
 
-            exec.setGroup("ForgeGradle");
-            exec.setDescription("Runs the Minecraft client");
+        exec.setGroup("ForgeGradle");
+        exec.setDescription("Runs the Minecraft client");
 
-            exec.doFirst(makeRunDir);
+        exec.doFirst(makeRunDir);
 
-            exec.dependsOn("makeStart");
-        }
+        exec.dependsOn("makeStart");
     }
 
     protected final TaskDepDummy getDummyDep(String config, DelayedFile dummy, String taskName)
@@ -808,15 +793,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         }
     }
 
-    private static final Spec<File> AT_SPEC = new Spec<File>()
-    {
-        @Override
-        public boolean isSatisfiedBy(File file)
-        {
-            return file.isFile() && file.getName().toLowerCase().endsWith("_at.cfg");
-        }
-    };
-
     /**
      * This method should add the MC dependency to the supplied config, as well as do any extra configuration that requires the provided information.
      * @param isDecomp Whether to use the recmpield MC artifact
@@ -824,12 +800,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
      * @param mcConfig Which gradle configuration to add the MC dep to
      */
     protected abstract void afterDecomp(boolean isDecomp, boolean useLocalCache, String mcConfig);
-
-    /**
-     * This method is called early, and not late.
-     * @return TRUE if a client run config and GradleStart should be created.
-     */
-    protected abstract boolean hasClientRun();
 
     /**
      * The location where the GradleStart files will be generated to.
@@ -996,47 +966,29 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
         T ext = getExtension();
 
-        String[][] config = new String[][]
-        {
-                this.hasClientRun() ? new String[]
-                {
-                        "Minecraft Client",
-                        GRADLE_START_CLIENT,
-                        Joiner.on(' ').join(getClientRunArgs(ext)),
-                        Joiner.on(' ').join(getClientJvmArgs(ext))
-                } : null,
-                null
-        };
+        Element child = addXml(root, "configuration", ImmutableMap.of(
+                "name", "Minecraft Client",
+                "type", "Application",
+                "factoryName", "Application",
+                "default", "false"));
 
-        for (String[] data : config)
-        {
-            if (data == null)
-                continue;
-
-            Element child = addXml(root, "configuration", ImmutableMap.of(
-                    "name", data[0],
-                    "type", "Application",
-                    "factoryName", "Application",
-                    "default", "false"));
-
-            addXml(child, "extension", ImmutableMap.of(
-                    "name", "coverage",
-                    "enabled", "false",
-                    "sample_coverage", "true",
-                    "runner", "idea"));
-            addXml(child, "option", ImmutableMap.of("name", "MAIN_CLASS_NAME", "value", data[1]));
-            addXml(child, "option", ImmutableMap.of("name", "VM_PARAMETERS", "value", data[3]));
-            addXml(child, "option", ImmutableMap.of("name", "PROGRAM_PARAMETERS", "value", data[2]));
-            addXml(child, "option", ImmutableMap.of("name", "WORKING_DIRECTORY", "value", "file://" + delayedFile("{RUN_DIR}").call().getCanonicalPath().replace(module, "$PROJECT_DIR$")));
-            addXml(child, "option", ImmutableMap.of("name", "ALTERNATIVE_JRE_PATH_ENABLED", "value", "false"));
-            addXml(child, "option", ImmutableMap.of("name", "ALTERNATIVE_JRE_PATH", "value", ""));
-            addXml(child, "option", ImmutableMap.of("name", "ENABLE_SWING_INSPECTOR", "value", "false"));
-            addXml(child, "option", ImmutableMap.of("name", "ENV_VARIABLES"));
-            addXml(child, "option", ImmutableMap.of("name", "PASS_PARENT_ENVS", "value", "true"));
-            addXml(child, "module", ImmutableMap.of("name", ((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName()));
-            addXml(child, "RunnerSettings", ImmutableMap.of("RunnerId", "Run"));
-            addXml(child, "ConfigurationWrapper", ImmutableMap.of("RunnerId", "Run"));
-        }
+        addXml(child, "extension", ImmutableMap.of(
+                "name", "coverage",
+                "enabled", "false",
+                "sample_coverage", "true",
+                "runner", "idea"));
+        addXml(child, "option", ImmutableMap.of("name", "MAIN_CLASS_NAME", "value", GRADLE_START_CLIENT));
+        addXml(child, "option", ImmutableMap.of("name", "VM_PARAMETERS", "value", Joiner.on(' ').join(getClientJvmArgs(ext))));
+        addXml(child, "option", ImmutableMap.of("name", "PROGRAM_PARAMETERS", "value", Joiner.on(' ').join(getClientRunArgs(ext))));
+        addXml(child, "option", ImmutableMap.of("name", "WORKING_DIRECTORY", "value", "file://" + delayedFile("{RUN_DIR}").call().getCanonicalPath().replace(module, "$PROJECT_DIR$")));
+        addXml(child, "option", ImmutableMap.of("name", "ALTERNATIVE_JRE_PATH_ENABLED", "value", "false"));
+        addXml(child, "option", ImmutableMap.of("name", "ALTERNATIVE_JRE_PATH", "value", ""));
+        addXml(child, "option", ImmutableMap.of("name", "ENABLE_SWING_INSPECTOR", "value", "false"));
+        addXml(child, "option", ImmutableMap.of("name", "ENV_VARIABLES"));
+        addXml(child, "option", ImmutableMap.of("name", "PASS_PARENT_ENVS", "value", "true"));
+        addXml(child, "module", ImmutableMap.of("name", ((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName()));
+        addXml(child, "RunnerSettings", ImmutableMap.of("RunnerId", "Run"));
+        addXml(child, "ConfigurationWrapper", ImmutableMap.of("RunnerId", "Run"));
 
         File f = delayedFile(REPLACE_RUN_DIR).call();
         if (!f.exists())

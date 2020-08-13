@@ -106,7 +106,6 @@ public class ApplyFernFlowerTask extends CachedTask {
         @Override
         public IVariableNameProvider createFactory(StructMethod arg0)
         {
-            // TODO Auto-generated method stub
             return new AdvancedJadRenamer(arg0);
         }
     }
@@ -164,7 +163,7 @@ public class ApplyFernFlowerTask extends CachedTask {
 
         private String getAbsolutePath(String path) {
             return new File(root, path).getAbsolutePath();
-          }
+        }
 
 
         @Override
