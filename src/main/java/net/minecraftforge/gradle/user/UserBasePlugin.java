@@ -274,7 +274,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
             deobfBin.setApplyMarkers(false);
             deobfBin.setInJar(inputJar);
             deobfBin.setOutJar(chooseDeobfOutput(globalPattern, localPattern, "Bin", ""));
-            deobfBin.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_EXTRACT_DEP_ATS, TASK_DD_COMPILE, TASK_DD_PROVIDED);
+            deobfBin.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_DD_COMPILE, TASK_DD_PROVIDED);
         }
 
         final Object deobfDecompJar = chooseDeobfOutput(globalPattern, localPattern, "", "srgBin");
@@ -291,7 +291,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
             deobfDecomp.setApplyMarkers(true);
             deobfDecomp.setInJar(inputJar);
             deobfDecomp.setOutJar(deobfDecompJar);
-            deobfDecomp.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_EXTRACT_DEP_ATS, TASK_DD_COMPILE, TASK_DD_PROVIDED); // todo grab correct task to depend on
+            deobfDecomp.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_DD_COMPILE, TASK_DD_PROVIDED); // todo grab correct task to depend on
         }
 
         final ApplyFernFlowerTask decompile = makeTask(TASK_DECOMPILE, ApplyFernFlowerTask.class);
