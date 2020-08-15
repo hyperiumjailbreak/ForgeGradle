@@ -22,7 +22,6 @@ package net.minecraftforge.gradle.tasks;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.LinkedList;
 import java.util.List;
 
 import net.minecraftforge.gradle.common.Constants;
@@ -86,7 +85,6 @@ public class ExtractS2SRangeTask extends DefaultTask
         
         for (File f : getLibs())
         {
-            //System.out.println("lib: "+f);
             extractor.addLibs(f);
         }
         

@@ -57,7 +57,6 @@ class CacheUtil
     @SuppressWarnings("rawtypes")
     protected static String getHashes(Annotated output, List<Annotated> inputs, ICachableTask task) throws NoSuchMethodException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, InvocationTargetException
     {
-        // TODO: CONVERT TO CacheFile
         List<String> hashes = Lists.newArrayListWithCapacity(inputs.size() + 5);
 
         hashes.addAll(Constants.hashAll(task.getProject().file(output.getValue(task))));

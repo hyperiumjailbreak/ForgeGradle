@@ -13,3 +13,4 @@ This document describes changes made in the Hyperium fork of ForgeGradle in orde
 * Remove license plugin
 * Add gitpod config
 * Update links and packaging
+* Remove launch4j plugin
