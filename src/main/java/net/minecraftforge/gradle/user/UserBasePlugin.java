@@ -333,8 +333,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         // create GradleStart
         final CreateStartTask makeStart = makeTask(TASK_MAKE_START, CreateStartTask.class);
         {
-            makeStart.addResource(GRADLE_START_RESOURCES[2]); // gradle start common.
-
             makeStart.addResource(GRADLE_START_RESOURCES[0]); // gradle start
 
             makeStart.addReplacement("@@ASSETINDEX@@", delayedString(REPLACE_ASSET_INDEX));
