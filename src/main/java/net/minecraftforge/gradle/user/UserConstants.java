@@ -53,7 +53,6 @@ public class UserConstants
 
     public static final String EXT_REOBF              = "reobf";
     public static final String TASK_REOBF             = "reobfJar";
-    public static final String TASK_SRC_JAR           = "sourceJar";
 
     public static final String TASK_DD_COMPILE        = "deobfCompileDummyTask";
     public static final String TASK_DD_PROVIDED       = "deobfProvidedDummyTask";
@@ -77,7 +76,7 @@ public class UserConstants
     public static final String TMPL_TASK_RETROMAP_RPL = "retromapReplaced%s";
     public static final String TMPL_RETROMAPED_RPL    = DIR_RETROMAP + "/retromappedReplaced%s.jar";
 
-    public static final String getSourceSetFormatted(SourceSet sourceSet, String template)
+    public static String getSourceSetFormatted(SourceSet sourceSet, String template)
     {
         String name = sourceSet.getName();
         name = name.substring(0, 1).toUpperCase() + name.substring(1);          // convert 1st char to upper case.

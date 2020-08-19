@@ -24,7 +24,6 @@ import static net.minecraftforge.gradle.user.UserConstants.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -70,6 +69,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
+import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -111,6 +111,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     {
         // apply the plugins
         this.applyExternalPlugin("java");
+        this.applyExternalPlugin("eclipse");
         this.applyExternalPlugin("idea");
 
         // life cycle tasks
@@ -192,21 +193,10 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
             }
         });
 
-        if (ext.getMakeObfSourceJar())
-        {
-            project.getTasks().getByName("assemble").dependsOn(TASK_SRC_JAR);
-        }
-
         // add task depends for reobf
         if (project.getPlugins().hasPlugin("maven"))
         {
             project.getTasks().getByName("uploadArchives").dependsOn(TASK_REOBF);
-
-            if (ext.getMakeObfSourceJar())
-            {
-                project.getTasks().getByName("uploadArchives").dependsOn(TASK_SRC_JAR);
-                project.getArtifacts().add("archives", project.getTasks().getByName(TASK_SRC_JAR));
-            }
         }
 
         // add GradleStart dep
@@ -426,12 +416,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
      */
     protected boolean useLocalCache(T extension)
     {
-        if (useLocalCache)
-            return true;
-
-        // checks to see if any access transformers were added.
-        useLocalCache = !extension.getAccessTransformers().isEmpty() || extension.isUseDepAts();
-
         return useLocalCache;
     }
 
@@ -720,23 +704,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         javaConv.getSourceSets().whenObjectAdded(retromapCreator);
 
         final SourceSet main = javaConv.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-
-        // make retromapped sourcejar
-        final Jar sourceJar = makeTask(TASK_SRC_JAR, Jar.class);
-        final String retromappedSrc = getSourceSetFormatted(main, TMPL_RETROMAPED_RPL);
-        sourceJar.from(main.getOutput().getResourcesDir());
-        sourceJar.setClassifier("sources");
-        sourceJar.dependsOn(main.getCompileJavaTaskName(), main.getProcessResourcesTaskName(), getSourceSetFormatted(main, TMPL_TASK_RETROMAP_RPL));
-
-        sourceJar.from(new Closure<Object>(UserBasePlugin.class) {
-            public Object call() {
-                File file = delayedFile(retromappedSrc).call();
-                if (file.exists())
-                    return sourceJar.getProject().zipTree(delayedFile(retromappedSrc));
-                else
-                    return new ArrayList<File>();
-            }
-        });
     }
 
     protected void makeRunTasks()
@@ -834,12 +801,15 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
      */
     protected abstract List<String> getClientJvmArgs(T ext);
 
-    /**
-     * Adds the intellij run configs and makes a few other tweaks to the intellij project creation
-     */
     @SuppressWarnings("serial")
     protected void configureIntellij()
     {
+        EclipseModel eclipseConv = (EclipseModel) project.getExtensions().getByName("eclipse");
+        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_MC));
+        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_MC_DEPS));
+        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_START));
+        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_PROVIDED));
+
         IdeaModel ideaConv = (IdeaModel) project.getExtensions().getByName("idea");
 
         ideaConv.getModule().getExcludeDirs().addAll(project.files(".gradle", "build", ".idea", "out").getFiles());

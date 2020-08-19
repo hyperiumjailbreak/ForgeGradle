@@ -26,8 +26,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -36,7 +34,6 @@ import java.util.zip.ZipOutputStream;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.TaskAction;
 
 import com.google.common.base.Charsets;
@@ -55,46 +52,6 @@ import net.minecraftforge.gradle.common.Constants;
 import net.minecraftforge.gradle.util.GradleConfigurationException;
 import net.minecraftforge.gradle.util.mcp.ReobfExceptor;
 
-/**
- * Reobfuscates an arbitrary jar artifact.
- *
- * <p>
- * To reobfuscate other artifacts or to change settings, use this in your build
- * script.
- *
- * <pre>
- *reobf {
- *    // the jar artifact to reobfuscate
- *    jar {
- *
- *        // Using non-default srg names
- *        // reobf to notch
- *        useNotchSrg()
- *        // or for Searge names
- *        useSrgSrg()
- *        // or something else
- *        mappings = file('srgs/minecraft.srg')
- *
- *        // In case you need to modify the classpath
- *        classpath += configurations.provided
- *
- *        // Use this to add srg files or lines
- *        // You can combine strings and files.
- *        extra 'PK: org/ejml your/pkg/ejml', file('srgs/mappings.srg')
- *
- *        // You can also use with '+=' and array
- *        extra += ['CL: your/pkg/Original your/pkg/Renamed', file('srgs/mappings2.srg')]
- *
- *    }
- *
- *    // Some other artifact using default settings
- *    // the brackets are needed to create it
- *    otherJar {}
- *}
- * </pre>
- *
- */
-@ParallelizableTask
 public class TaskSingleReobf extends DefaultTask
 {
     private Object                 jar;
@@ -351,16 +308,6 @@ public class TaskSingleReobf extends DefaultTask
         this.extraSrgLines.add(srgLine);
     }
 
-    public void addExtraSrgLines(String... srgLines)
-    {
-        this.extraSrgLines.addAll(Arrays.asList(srgLines));
-    }
-
-    public void addExtraSrgLines(Collection<String> srgLines)
-    {
-        this.extraSrgLines.addAll(srgLines);
-    }
-
     // GETTERS AND STUF FOR DECOMP SPECIFIC STUFF
     // --------------------------------------------
 
@@ -399,29 +346,14 @@ public class TaskSingleReobf extends DefaultTask
         return deobfFile == null ? null : getProject().file(deobfFile);
     }
 
-    public void setDeobfFile(Object deobfFile)
-    {
-        this.deobfFile = deobfFile;
-    }
-
     public File getRecompFile()
     {
         return recompFile == null ? null : getProject().file(recompFile);
     }
 
-    public void setRecompFile(Object recompFile)
-    {
-        this.recompFile = recompFile;
-    }
-
     public boolean isDecomp()
     {
         return isDecomp;
-    }
-
-    public void setDecomp(boolean isDecomp)
-    {
-        this.isDecomp = isDecomp;
     }
 
     // EXTRA FANCY TRANSFORMERS
@@ -459,7 +391,6 @@ public class TaskSingleReobf extends DefaultTask
 
     public static class ClosureTransformer implements ReobfTransformer
     {
-        private static final long serialVersionUID = 1L;
         private Closure<byte[]>   closure;
 
         public ClosureTransformer(Closure<byte[]> closure)

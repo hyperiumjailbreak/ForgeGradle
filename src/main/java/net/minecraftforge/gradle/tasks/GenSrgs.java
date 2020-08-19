@@ -460,18 +460,8 @@ public class GenSrgs extends CachedTask
         return getProject().files(extraExcs);
     }
 
-    public void addExtraExc(File file)
-    {
-        extraExcs.add(file);
-    }
-
     public FileCollection getExtraSrgs()
     {
         return getProject().files(extraSrgs);
-    }
-
-    public void addExtraSrg(File file)
-    {
-        extraSrgs.add(file);
     }
 }

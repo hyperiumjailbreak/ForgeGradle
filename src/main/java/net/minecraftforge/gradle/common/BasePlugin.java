@@ -65,7 +65,6 @@ import net.minecraftforge.gradle.tasks.EtagDownloadTask;
 import net.minecraftforge.gradle.tasks.ExtractConfigTask;
 import net.minecraftforge.gradle.tasks.GenSrgs;
 import net.minecraftforge.gradle.tasks.MergeJars;
-import net.minecraftforge.gradle.tasks.SignJar;
 import net.minecraftforge.gradle.tasks.SplitJarTask;
 import net.minecraftforge.gradle.util.FileLogListenner;
 import net.minecraftforge.gradle.util.GradleConfigurationException;
@@ -140,7 +139,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         // add buildscript usable tasks
         {
             ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
-            ext.set("SignJar", SignJar.class);
             ext.set("Download", Download.class);
             ext.set("EtagDownload", EtagDownloadTask.class);
         }

@@ -36,12 +36,10 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
-@ParallelizableTask
 public class ExtractConfigTask extends CachedTask implements PatternFilterable
 {
 
@@ -83,19 +81,13 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable
         }
     }
 
-    private void delete(File f) throws IOException
-    {
+    private void delete(File f) {
         if (f.isDirectory())
         {
             for (File c : f.listFiles())
                 delete(c);
         }
         f.delete();
-    }
-
-    public String getConfig()
-    {
-        return config;
     }
 
     public void setConfig(String config)
@@ -139,11 +131,6 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable
     public boolean shouldClean()
     {
         return clean;
-    }
-
-    public void setClean(boolean clean)
-    {
-        this.clean = clean;
     }
 
     @Override
@@ -202,7 +189,6 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable include(Closure arg0)
     {
         return patternSet.include(arg0);

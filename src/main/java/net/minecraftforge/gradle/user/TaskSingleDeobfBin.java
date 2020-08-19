@@ -36,7 +36,6 @@ import net.minecraftforge.gradle.util.caching.CachedTask;
 
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -48,7 +47,6 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 
-@ParallelizableTask
 public class TaskSingleDeobfBin extends CachedTask
 {
     @InputFile
@@ -120,15 +118,14 @@ public class TaskSingleDeobfBin extends CachedTask
             {
                 zout.putNextEntry(new JarEntry(entry));
                 ByteStreams.copy(zin, zout);
-                zout.closeEntry();
             }
             else
             {
                 // classes
                 zout.putNextEntry(new JarEntry(entry.getName()));
                 zout.write(deobfClass(ByteStreams.toByteArray(zin), methods, fields));
-                zout.closeEntry();
             }
+            zout.closeEntry();
         }
 
         zout.close();

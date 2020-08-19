@@ -76,18 +76,16 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.14'
+    gradleVersion = '4.9'
 }
 
 sourceSets {
-    main.compileClasspath += configurations.shade;
-    main.runtimeClasspath += configurations.shade;
+    main.compileClasspath += configurations.shade
+    main.runtimeClasspath += configurations.shade
 }
 
 compileJava {
 	options.deprecation = true
-	//options.compilerArgs += ["-Werror"]
-	//options.compilerArgs += ["-Werror", "-Xlint:unchecked"]
 }
 
 jar {
