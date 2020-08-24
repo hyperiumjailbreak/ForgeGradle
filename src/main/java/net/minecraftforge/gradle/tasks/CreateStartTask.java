@@ -223,11 +223,6 @@ public class CreateStartTask extends CachedTask
         resources.put(outName, getResource(resource));
     }
 
-    public void removeResource(String key)
-    {
-        resources.remove(key);
-    }
-
     public void addResource(String resource, String outName)
     {
         this.addResource(Constants.getResource(resource), outName);
@@ -241,11 +236,6 @@ public class CreateStartTask extends CachedTask
     public void addReplacement(String token, Object replacement)
     {
         replacements.put(token, replacement);
-    }
-
-    public void addExtraLine(String extra)
-    {
-        this.extraLines.add(extra);
     }
 
     public void addClasspathConfig(String classpathConfig)

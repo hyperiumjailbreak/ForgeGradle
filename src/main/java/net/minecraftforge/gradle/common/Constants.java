@@ -65,7 +65,7 @@ import net.minecraftforge.gradle.util.json.version.OS;
 public class Constants
 {
     // OS
-    public static enum SystemArch
+    public enum SystemArch
     {
         BIT_32, BIT_64;
 
@@ -113,10 +113,8 @@ public class Constants
     /** AssetIndex name **/
     public static final String REPLACE_ASSET_INDEX       = "{ASSET_INDEX}";
 
-
     // urls
     public static final String URL_MC_MANIFEST  = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
-    public static final String URL_FF           = "http://files.minecraftforge.net/fernflower-fix-1.0.zip";
     public static final String URL_ASSETS       = "http://resources.download.minecraft.net";
     public static final String URL_LIBRARY      = "https://libraries.minecraft.net/";
     public static final String URL_FORGE_MAVEN  = "http://files.minecraftforge.net/maven";
@@ -139,7 +137,6 @@ public class Constants
     public static final String JAR_SERVER_PURE  = REPLACE_CACHE_DIR + "/net/minecraft/minecraft_server/" + REPLACE_MC_VERSION + "/minecraft_server-" + REPLACE_MC_VERSION + "-pure.jar";
     public static final String JAR_SERVER_DEPS  = REPLACE_CACHE_DIR + "/net/minecraft/minecraft_server/" + REPLACE_MC_VERSION + "/minecraft_server-" + REPLACE_MC_VERSION + "-deps.jar";
     public static final String DIR_NATIVES      = REPLACE_CACHE_DIR + "/net/minecraft/natives/" + REPLACE_MC_VERSION + "/";
-    public static final String JAR_FERNFLOWER   = REPLACE_CACHE_DIR + "/fernflower-fixed.jar";
     public static final String DIR_ASSETS       = REPLACE_CACHE_DIR + "/assets";
     public static final String JSON_ASSET_INDEX = DIR_ASSETS + "/indexes/" + REPLACE_ASSET_INDEX + ".json";
     public static final String DIR_JSONS        = REPLACE_CACHE_DIR + "/versionJsons";
@@ -155,20 +152,12 @@ public class Constants
             //makeStart.addResource("net/minecraftforge/gradle/OldPropertyMapSerializer.java");
     };
 
-    public static final String[] GRADLE_START_FML_RES = new String[] {
-            "net/minecraftforge/gradle/GradleForgeHacks.java",
-            "net/minecraftforge/gradle/tweakers/CoremodTweaker.java",
-            "net/minecraftforge/gradle/tweakers/AccessTransformerTweaker.java"
-    };
-
     // mcp data constants
     public static final String MCP_DATA_SRG       = DIR_MCP_DATA + "/joined.srg";
     public static final String MCP_DATA_EXC       = DIR_MCP_DATA + "/joined.exc";
     public static final String MCP_DATA_EXC_JSON  = DIR_MCP_DATA + "/exceptor.json";
     public static final String MCP_DATA_STYLE     = DIR_MCP_DATA + "/astyle.cfg";
     public static final String MCP_PATCHES_CLIENT = DIR_MCP_DATA + "/patches/minecraft_ff";
-    public static final String MCP_PATCHES_SERVER = DIR_MCP_DATA + "/patches/minecraft_server_ff";
-    public static final String MCP_PATCHES_MERGED = DIR_MCP_DATA + "/patches/minecraft_merged_ff";
 
     // generated off of MCP data constants
     public static final String CSV_METHOD       = DIR_MCP_MAPPINGS + "/methods.csv";
@@ -407,13 +396,13 @@ public class Constants
             byte[] hash = hasher.digest();
 
             // convert to string
-            String result = "";
+            StringBuilder result = new StringBuilder();
 
             for (int i = 0; i < hash.length; i++)
             {
-                result += Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1);
+                result.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
             }
-            return result;
+            return result.toString();
         }
         catch (Exception e)
         {
@@ -440,13 +429,13 @@ public class Constants
             MessageDigest complete = MessageDigest.getInstance(function);
             byte[] hash = complete.digest(bytes);
 
-            String result = "";
+            StringBuilder result = new StringBuilder();
 
             for (int i = 0; i < hash.length; i++)
             {
-                result += Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1);
+                result.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
             }
-            return result;
+            return result.toString();
         }
         catch (Exception e)
         {

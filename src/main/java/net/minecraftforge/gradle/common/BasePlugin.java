@@ -44,7 +44,6 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Delete;
-import org.gradle.testfixtures.ProjectBuilder;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
@@ -75,6 +74,7 @@ import net.minecraftforge.gradle.util.delayed.ReplacementProvider;
 import net.minecraftforge.gradle.util.delayed.TokenReplacer;
 import net.minecraftforge.gradle.util.json.JsonFactory;
 import net.minecraftforge.gradle.util.json.version.Version;
+
 public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Project>
 {
     public Project       project;
@@ -144,13 +144,10 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         }
 
         // repos
-        project.allprojects(new Action<Project>() {
-            public void execute(Project proj)
-            {
-                addMavenRepo(proj, "forge", URL_FORGE_MAVEN);
-                proj.getRepositories().mavenCentral();
-                addMavenRepo(proj, "minecraft", URL_LIBRARY);
-            }
+        project.allprojects(proj -> {
+            addMavenRepo(proj, "forge", URL_FORGE_MAVEN);
+            proj.getRepositories().mavenCentral();
+            addMavenRepo(proj, "minecraft", URL_LIBRARY);
         });
 
         // do Mcp Snapshots Stuff
@@ -274,7 +271,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                         StringBuilder buf = new StringBuilder();
                         for (String line : lines)
                         {
-                            buf = buf.append(line).append('\n');
+                            buf.append(line).append('\n');
                         }
                         Files.write(buf.toString().getBytes(Charsets.UTF_8), json);
 
@@ -458,33 +455,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     public static <T extends Task> T makeTask(Project proj, String name, Class<T> type)
     {
         return (T) proj.getTasks().create(name, type);
-    }
-
-    public static Project buildProject(File buildFile, Project parent)
-    {
-        ProjectBuilder builder = ProjectBuilder.builder();
-        if (buildFile != null)
-        {
-            builder = builder.withProjectDir(buildFile.getParentFile()).withName(buildFile.getParentFile().getName());
-        }
-        else
-        {
-            builder = builder.withProjectDir(new File("."));
-        }
-
-        if (parent != null)
-        {
-            builder = builder.withParent(parent);
-        }
-
-        Project project = builder.build();
-
-        if (buildFile != null)
-        {
-            project.apply(ImmutableMap.of("from", buildFile.getAbsolutePath()));
-        }
-
-        return project;
     }
 
     public void applyExternalPlugin(String plugin)
