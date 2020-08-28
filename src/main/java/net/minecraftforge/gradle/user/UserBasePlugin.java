@@ -85,10 +85,8 @@ import groovy.lang.Closure;
 import net.minecraftforge.gradle.common.BasePlugin;
 import net.minecraftforge.gradle.common.Constants;
 import net.minecraftforge.gradle.tasks.ApplyFernFlowerTask;
-import net.minecraftforge.gradle.tasks.ApplyS2STask;
 import net.minecraftforge.gradle.tasks.CreateStartTask;
 import net.minecraftforge.gradle.tasks.DeobfuscateJar;
-import net.minecraftforge.gradle.tasks.ExtractS2SRangeTask;
 import net.minecraftforge.gradle.tasks.PostDecompileTask;
 import net.minecraftforge.gradle.tasks.RemapSources;
 import net.minecraftforge.gradle.user.ReobfTaskFactory.ReobfTaskWrapper;
@@ -149,7 +147,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         // Quality of life stuff for the users
         createSourceCopyTasks();
         doDevTimeDeobf();
-        configureRetromapping();
         makeRunTasks();
 
         // IDE stuff
@@ -633,77 +630,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         return delayedFile(
         baseDir + "/" + group.replace('.', '/') + "/" + name + "/" + version + "/" +
                 name + "-" + version + (Strings.isNullOrEmpty(classifier) ? "" : "-" + classifier) + ".jar");
-    }
-
-    protected void configureRetromapping()
-    {
-        JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
-
-        Action<SourceSet> retromapCreator = new Action<SourceSet>() {
-            @Override
-            public void execute(final SourceSet set) {
-
-                // native non-replaced
-                DelayedFile rangeMap = delayedFile(getSourceSetFormatted(set, TMPL_RANGEMAP));
-                DelayedFile retroMapped = delayedFile(getSourceSetFormatted(set, TMPL_RETROMAPED));
-
-                final ExtractS2SRangeTask extractRangemap = makeTask(getSourceSetFormatted(set, TMPL_TASK_RANGEMAP), ExtractS2SRangeTask.class);
-                extractRangemap.addSource(new File(project.getBuildDir(), "sources/main/java"));
-                extractRangemap.setRangeMap(rangeMap);
-                project.afterEvaluate(new Action<Project>() {
-                    @Override
-                    public void execute(Project project)
-                    {
-                        extractRangemap.addLibs(set.getCompileClasspath());
-                    }
-                });
-
-                ApplyS2STask retromap = makeTask(getSourceSetFormatted(set, TMPL_TASK_RETROMAP), ApplyS2STask.class);
-                retromap.addSource(set.getAllJava());
-                retromap.setOut(retroMapped);
-                retromap.addSrg(delayedFile(SRG_MCP_TO_SRG));
-                retromap.addExc(delayedFile(EXC_MCP));
-                retromap.addExc(delayedFile(EXC_SRG));
-                retromap.setRangeMap(rangeMap);
-                retromap.dependsOn(TASK_GENERATE_SRGS, extractRangemap);
-
-                // for replaced sources
-                rangeMap = delayedFile(getSourceSetFormatted(set, TMPL_RANGEMAP_RPL));
-                retroMapped = delayedFile(getSourceSetFormatted(set, TMPL_RETROMAPED_RPL));
-                File replacedSource = new File(project.getBuildDir(), "sources/"+set.getName()+"/java");
-
-                final ExtractS2SRangeTask extractRangemap2 = makeTask(getSourceSetFormatted(set, TMPL_TASK_RANGEMAP_RPL), ExtractS2SRangeTask.class);
-                extractRangemap2.addSource(replacedSource);
-                extractRangemap2.setRangeMap(rangeMap);
-                project.afterEvaluate(new Action<Project>() {
-                    @Override
-                    public void execute(Project project)
-                    {
-                        extractRangemap2.addLibs(set.getCompileClasspath());
-                    }
-                });
-                extractRangemap2.dependsOn(getSourceSetFormatted(set, "source%sJava"));
-
-                retromap = makeTask(getSourceSetFormatted(set, TMPL_TASK_RETROMAP_RPL), ApplyS2STask.class);
-                retromap.addSource(replacedSource);
-                retromap.setOut(retroMapped);
-                retromap.addSrg(delayedFile(SRG_MCP_TO_SRG));
-                retromap.addExc(delayedFile(EXC_MCP));
-                retromap.addExc(delayedFile(EXC_SRG));
-                retromap.setRangeMap(rangeMap);
-                retromap.dependsOn(TASK_GENERATE_SRGS, extractRangemap2);
-            }
-        };
-
-        // for existing sourceSets
-        for (SourceSet set : javaConv.getSourceSets())
-        {
-            retromapCreator.execute(set);
-        }
-        // for user-defined ones
-        javaConv.getSourceSets().whenObjectAdded(retromapCreator);
-
-        final SourceSet main = javaConv.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
     protected void makeRunTasks()

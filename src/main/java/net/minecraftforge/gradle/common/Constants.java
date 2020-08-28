@@ -173,9 +173,6 @@ public class Constants
 
     // task names
     public static final String TASK_DL_CLIENT        = "downloadClient";
-    public static final String TASK_DL_SERVER        = "downloadServer";
-    public static final String TASK_SPLIT_SERVER     = "splitServerJar";
-    public static final String TASK_MERGE_JARS       = "mergeJars";
     public static final String TASK_EXTRACT_NATIVES  = "extractNatives";
     public static final String TASK_DL_VERSION_JSON  = "getVersionJson";
     public static final String TASK_DL_ASSET_INDEX   = "getAssetIndex";

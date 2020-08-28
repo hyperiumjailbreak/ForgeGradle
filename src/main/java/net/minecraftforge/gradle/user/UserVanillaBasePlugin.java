@@ -48,9 +48,6 @@ public abstract class UserVanillaBasePlugin<T extends UserBaseExtension> extends
 
         createDecompTasks(CLEAN_ROOT + jarName + "/" + REPLACE_MC_VERSION + "/" + MCP_INSERT + "/" + jarName + cleanSuffix, DIR_LOCAL_CACHE + "/" + jarName + dirtySuffix);
 
-        // remove the unused merge jars task
-        project.getTasks().remove(project.getTasks().getByName(TASK_MERGE_JARS));
-
         // add version json task to CI and dev workspace tasks
         project.getTasks().getByName(TASK_SETUP_CI).dependsOn(Constants.TASK_DL_VERSION_JSON);
         project.getTasks().getByName(TASK_SETUP_DEV).dependsOn(Constants.TASK_DL_VERSION_JSON);

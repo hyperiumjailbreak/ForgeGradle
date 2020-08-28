@@ -22,7 +22,6 @@ package net.minecraftforge.gradle.user;
 import org.gradle.api.tasks.SourceSet;
 
 import static net.minecraftforge.gradle.common.Constants.REPLACE_CACHE_DIR;
-import static net.minecraftforge.gradle.common.Constants.REPLACE_BUILD_DIR;
 
 public class UserConstants
 {
@@ -62,19 +61,6 @@ public class UserConstants
     static final String        REPLACE_RUN_DIR        = "{RUN_DIR}";
 
     public static final String DIR_DEOBF_DEPS         = REPLACE_CACHE_DIR + "/deobfedDeps/";
-
-    // retromapping sourceSets
-    public static final String DIR_RETROMAP           = REPLACE_BUILD_DIR + "/retromapping";
-    public static final String TMPL_TASK_RANGEMAP     = "extractRangemap%s";
-    public static final String TMPL_RANGEMAP          = DIR_RETROMAP + "/%s.rangemap";
-    public static final String TMPL_TASK_RETROMAP     = "retromap%s";
-    public static final String TMPL_RETROMAPED        = DIR_RETROMAP + "/retromapped%s.jar";
-
-    // retromapping toke-replaced sourcesets
-    public static final String TMPL_TASK_RANGEMAP_RPL = "extractRangemapReplaced%s";
-    public static final String TMPL_RANGEMAP_RPL      = DIR_RETROMAP + "/replaced%s.rangemap";
-    public static final String TMPL_TASK_RETROMAP_RPL = "retromapReplaced%s";
-    public static final String TMPL_RETROMAPED_RPL    = DIR_RETROMAP + "/retromappedReplaced%s.jar";
 
     public static String getSourceSetFormatted(SourceSet sourceSet, String template)
     {

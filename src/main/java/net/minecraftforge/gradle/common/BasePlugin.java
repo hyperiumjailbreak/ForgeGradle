@@ -63,8 +63,6 @@ import net.minecraftforge.gradle.tasks.DownloadAssetsTask;
 import net.minecraftforge.gradle.tasks.EtagDownloadTask;
 import net.minecraftforge.gradle.tasks.ExtractConfigTask;
 import net.minecraftforge.gradle.tasks.GenSrgs;
-import net.minecraftforge.gradle.tasks.MergeJars;
-import net.minecraftforge.gradle.tasks.SplitJarTask;
 import net.minecraftforge.gradle.util.FileLogListenner;
 import net.minecraftforge.gradle.util.GradleConfigurationException;
 import net.minecraftforge.gradle.util.delayed.DelayedFile;
@@ -332,50 +330,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
             });
 
             dlClient.dependsOn(getVersionJson);
-        }
-
-        Download dlServer = makeTask(TASK_DL_SERVER, Download.class);
-        {
-            dlServer.setOutput(delayedFile(JAR_SERVER_FRESH));
-            dlServer.setUrl(new Closure<String>(BasePlugin.class) {
-                @Override
-                public String call()
-                {
-                    return mcVersionJson.getServerUrl();
-                }
-            });
-
-            dlServer.dependsOn(getVersionJson);
-        }
-
-        SplitJarTask splitServer = makeTask(TASK_SPLIT_SERVER, SplitJarTask.class);
-        {
-            splitServer.setInJar(delayedFile(JAR_SERVER_FRESH));
-            splitServer.setOutFirst(delayedFile(JAR_SERVER_PURE));
-            splitServer.setOutSecond(delayedFile(JAR_SERVER_DEPS));
-
-            splitServer.exclude("org/bouncycastle", "org/bouncycastle/*", "org/bouncycastle/**");
-            splitServer.exclude("org/apache", "org/apache/*", "org/apache/**");
-            splitServer.exclude("com/google", "com/google/*", "com/google/**");
-            splitServer.exclude("com/mojang/authlib", "com/mojang/authlib/*", "com/mojang/authlib/**");
-            splitServer.exclude("com/mojang/util", "com/mojang/util/*", "com/mojang/util/**");
-            splitServer.exclude("gnu/trove", "gnu/trove/*", "gnu/trove/**");
-            splitServer.exclude("io/netty", "io/netty/*", "io/netty/**");
-            splitServer.exclude("javax/annotation", "javax/annotation/*", "javax/annotation/**");
-            splitServer.exclude("argo", "argo/*", "argo/**");
-
-            splitServer.dependsOn(dlServer);
-        }
-
-        MergeJars merge = makeTask(TASK_MERGE_JARS, MergeJars.class);
-        {
-            merge.setClient(delayedFile(JAR_CLIENT_FRESH));
-            merge.setServer(delayedFile(JAR_SERVER_PURE));
-            merge.setOutJar(delayedFile(JAR_MERGED));
-            merge.dependsOn(dlClient, splitServer);
-
-            merge.setGroup(null);
-            merge.setDescription(null);
         }
 
         ExtractConfigTask extractMcpData = makeTask(TASK_EXTRACT_MCP, ExtractConfigTask.class);
