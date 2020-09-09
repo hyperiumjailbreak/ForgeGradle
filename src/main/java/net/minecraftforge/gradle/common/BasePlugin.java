@@ -87,16 +87,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     {
         project = arg;
 
-        // check for gradle version
-        {
-            List<String> split = Splitter.on('.').splitToList(project.getGradle().getGradleVersion());
-
-            int major = Integer.parseInt(split.get(0));
-
-            if (major >= 3)
-                throw new RuntimeException("ForgeGradle requires Gradle 4 or above.");
-        }
-
         if (project.getBuildDir().getAbsolutePath().contains("!"))
         {
             project.getLogger().error("Build path has !, This will screw over a lot of java things as ! is used to denote archive paths, REMOVE IT if you want to continue");
