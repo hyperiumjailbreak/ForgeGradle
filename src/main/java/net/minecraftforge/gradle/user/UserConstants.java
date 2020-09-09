@@ -31,7 +31,6 @@ public class UserConstants
 
     public static final String CONFIG_MC              = "forgeGradleMc";
     public static final String CONFIG_START           = "forgeGradleGradleStart";
-    public static final String CONFIG_PROVIDED        = "provided";
 
     public static final String CONFIG_DEOBF_COMPILE   = "deobfCompile";
     public static final String CONFIG_DEOBF_PROVIDED  = "deobfProvided";

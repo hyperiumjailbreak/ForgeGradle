@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -57,7 +56,6 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.MavenPluginConvention;
 import org.gradle.api.tasks.GroovySourceSet;
@@ -130,7 +128,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
         // create configs
         project.getConfigurations().maybeCreate(CONFIG_MC);
-        project.getConfigurations().maybeCreate(CONFIG_PROVIDED);
         project.getConfigurations().maybeCreate(CONFIG_START);
 
         project.getConfigurations().maybeCreate(CONFIG_DEOBF_COMPILE);
@@ -216,15 +213,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         exec.dependsOn(jarTask);
         exec.jvmArgs(getClientJvmArgs(getExtension()));
         exec.args(getClientRunArgs(getExtension()));
-
-        // complain about version number
-        // blame cazzar if this regex doesnt work
-        Pattern pattern = Pattern.compile("(?:(?:mc)?((?:\\d+)(?:.\\d+)+)-)?((?:0|[1-9][0-9]*)(?:\\.(?:0|[1-9][0-9]*))+)(?:-([\\da-z\\-]+(?:\\.[\\da-z\\-]+)*))?(?:\\+([\\da-z\\-]+(?:\\.[\\da-z\\-]+)*))?", Pattern.CASE_INSENSITIVE);
-        if (!pattern.matcher(project.getVersion().toString()).matches())
-        {
-            project.getLogger().warn("Version string '"+project.getVersion()+"' does not match SemVer specification ");
-            project.getLogger().warn("You should try SemVer : http://semver.org/");
-        }
     }
 
     protected abstract void applyUserPlugin();
@@ -426,43 +414,30 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
 
         SourceSet main = javaConv.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        SourceSet test = javaConv.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
         SourceSet api = javaConv.getSourceSets().create("api");
 
         api.setCompileClasspath(api.getCompileClasspath()
                 .plus(project.getConfigurations().getByName(CONFIG_MC))
-                .plus(project.getConfigurations().getByName(CONFIG_MC_DEPS))
-                .plus(project.getConfigurations().getByName(CONFIG_PROVIDED)));
+                .plus(project.getConfigurations().getByName(CONFIG_MC_DEPS)));
         main.setCompileClasspath(main.getCompileClasspath()
                 .plus(api.getOutput())
                 .plus(project.getConfigurations().getByName(CONFIG_MC))
-                .plus(project.getConfigurations().getByName(CONFIG_MC_DEPS))
-                .plus(project.getConfigurations().getByName(CONFIG_PROVIDED)));
+                .plus(project.getConfigurations().getByName(CONFIG_MC_DEPS)));
         main.setRuntimeClasspath(main.getCompileClasspath()
                 .plus(api.getOutput())
                 .plus(project.getConfigurations().getByName(CONFIG_MC))
                 .plus(project.getConfigurations().getByName(CONFIG_MC_DEPS))
                 .plus(project.getConfigurations().getByName(CONFIG_START)));
-        test.setCompileClasspath(test.getCompileClasspath()
-                .plus(api.getOutput())
-                .plus(project.getConfigurations().getByName(CONFIG_MC))
-                .plus(project.getConfigurations().getByName(CONFIG_MC_DEPS))
-                .plus(project.getConfigurations().getByName(CONFIG_PROVIDED)));
-        test.setRuntimeClasspath(test.getRuntimeClasspath()
-                .plus(api.getOutput())
-                .plus(project.getConfigurations().getByName(CONFIG_MC))
-                .plus(project.getConfigurations().getByName(CONFIG_MC_DEPS)));
 
-        project.getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(project.getConfigurations().getByName(CONFIG_DC_RESOLVED));
-        project.getConfigurations().getByName(CONFIG_PROVIDED).extendsFrom(project.getConfigurations().getByName(CONFIG_DP_RESOLVED));
+        project.getConfigurations().getByName("compile").extendsFrom(project.getConfigurations().getByName(CONFIG_DC_RESOLVED));
         project.getConfigurations().getByName(api.getCompileConfigurationName()).extendsFrom(project.getConfigurations().getByName("compile"));
-        project.getConfigurations().getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME).extendsFrom(project.getConfigurations().getByName("apiCompile"));
+        project.getConfigurations().getByName("testCompile").extendsFrom(project.getConfigurations().getByName("apiCompile"));
 
-        Javadoc javadoc = (Javadoc) project.getTasks().getByName(JavaPlugin.JAVADOC_TASK_NAME);
+        Javadoc javadoc = (Javadoc) project.getTasks().getByName("javadoc");
         javadoc.setClasspath(main.getOutput().plus(main.getCompileClasspath()));
 
         // libs folder dependencies
-        project.getDependencies().add(JavaPlugin.COMPILE_CONFIGURATION_NAME, project.fileTree("libs"));
+        project.getDependencies().add("compile", project.fileTree("libs"));
 
         // set the compile target
         javaConv.setSourceCompatibility("1.8");
@@ -679,7 +654,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
             final int priority = 500; // 500 is more than the compile config which is at 300
 
             mappings.setSkipUnmappedConfs(true); // dont want unmapped confs bieng compile deps..
-            mappings.addMapping(priority, configs.getByName(CONFIG_PROVIDED), Conf2ScopeMappingContainer.PROVIDED);
             mappings.addMapping(priority, configs.getByName(CONFIG_DEOBF_COMPILE), Conf2ScopeMappingContainer.COMPILE);
             mappings.addMapping(priority, configs.getByName(CONFIG_DEOBF_PROVIDED), Conf2ScopeMappingContainer.PROVIDED);
         }
@@ -734,7 +708,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_MC));
         eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_MC_DEPS));
         eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_START));
-        eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_PROVIDED));
 
         IdeaModel ideaConv = (IdeaModel) project.getExtensions().getByName("idea");
 
@@ -745,8 +718,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         ideaConv.getModule().getScopes().get("COMPILE").get("plus").add(project.getConfigurations().getByName(CONFIG_MC_DEPS));
         ideaConv.getModule().getScopes().get("COMPILE").get("plus").add(project.getConfigurations().getByName(CONFIG_MC));
         ideaConv.getModule().getScopes().get("RUNTIME").get("plus").add(project.getConfigurations().getByName(CONFIG_START));
-        // not provided here, becuase idea actually removes those from the runtime config
-        ideaConv.getModule().getScopes().get("COMPILE").get("plus").add(project.getConfigurations().getByName(CONFIG_PROVIDED));
 
         // add deobf task dependencies
         project.getTasks().getByName("ideaModule").dependsOn(TASK_DD_COMPILE, TASK_DD_PROVIDED).doFirst(makeRunDir);

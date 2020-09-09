@@ -35,7 +35,7 @@ public abstract class BaseExtension
 {
     protected static final transient Map<String, String> MCP_VERSION_MAP = ImmutableMap.of("1.8", "9.10");
 
-    public final String forgeGradleVersion;
+    public static final String forgeGradleVersion = "2.1-SNAPSHOT";
 
     protected transient Project             project;
     protected transient ReplacementProvider replacer;
@@ -54,8 +54,6 @@ public abstract class BaseExtension
     {
         this.project = plugin.project;
         this.replacer = plugin.replacer;
-
-        forgeGradleVersion = "2.1-SNAPSHOT";
     }
 
     /**
@@ -267,7 +265,6 @@ public abstract class BaseExtension
                         project.getLogger().warn("This mapping '" + getMappings() + "' was designed for MC " + mcEntry.getKey() + "! Use at your own peril.");
                         replacer.putReplacement(Constants.REPLACE_MCP_MCVERSION, mcEntry.getKey()); // set MC version
                         return;
-                        // throw new GradleConfigurationException("This mapping '" + getMappings() + "' exists only for MC " + mcEntry.getKey() + "!");
                     }
 
                     // right MC , but wrong channel
