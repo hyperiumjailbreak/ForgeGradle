@@ -150,13 +150,6 @@ public class DeobfuscateJar extends CachedTask
             Files.write(JsonFactory.GSON.toJson(struct).getBytes(), jsonTmp);
         }
 
-        getLogger().debug("INPUT: " + inJar);
-        getLogger().debug("OUTPUT: " + outJar);
-        getLogger().debug("CONFIG: " + config);
-        getLogger().debug("JSON: " + json);
-        getLogger().debug("LOG: " + log);
-        getLogger().debug("PARAMS: true");
-
         MCInjectorImpl.process(inJar.getCanonicalPath(),
                 outJar.getCanonicalPath(),
                 config.getCanonicalPath(),

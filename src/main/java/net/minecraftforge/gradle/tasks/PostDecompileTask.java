@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import net.minecraftforge.gradle.common.Constants;
 import net.minecraftforge.gradle.util.caching.Cached;
@@ -109,15 +108,12 @@ public class PostDecompileTask extends AbstractEditJarTask
     @Override
     public String asRead(String name, String file) throws Exception
     {
-        getLogger().debug("Processing file: " + name);
-
         file = FFPatcher.processFile(file);
 
         // patch the file
         Collection<File> patchFiles = patchesMap.get(name.replace('/', '.'));
         if (!patchFiles.isEmpty())
         {
-            getLogger().debug("applying MCP patches");
             ContextProvider provider = new ContextProvider(file);
             ContextualPatch patch = findPatch(patchFiles, provider,getLogger());
             if (patch != null) {
@@ -126,19 +122,14 @@ public class PostDecompileTask extends AbstractEditJarTask
             }
         }
 
-        getLogger().debug("processing comments");
         file = McpCleanup.stripComments(file);
 
-        getLogger().debug("fixing imports comments");
         file = McpCleanup.fixImports(file);
 
-        getLogger().debug("various other cleanup");
         file = McpCleanup.cleanup(file);
 
-        getLogger().debug("fixing OGL constants");
         file = oglFixer.fixOGL(file);
 
-        getLogger().debug("formatting source");
         Reader reader = new StringReader(file);
         Writer writer = new StringWriter();
         formatter.format(reader, writer);
@@ -153,7 +144,6 @@ public class PostDecompileTask extends AbstractEditJarTask
     @Override
     public void doStuffAfter() throws Exception
     {
-        boolean fuzzed = false;
         Throwable error = null;
         for (PatchAttempt attempt: patchErrors)
         {
@@ -179,7 +169,6 @@ public class PostDecompileTask extends AbstractEditJarTask
                 else if (report.getStatus() == PatchStatus.Fuzzed) // catch fuzzed patches
                 {
                     getLogger().log(LogLevel.INFO, "Patching fuzzed: " + report.getTarget(), report.getFailure());
-                    fuzzed = true;
 
                     for (HunkReport hunk : report.getHunks())
                     {
@@ -189,14 +178,8 @@ public class PostDecompileTask extends AbstractEditJarTask
                         }
                     }
                 }
-                else
-                {
-                    getLogger().debug("Patch succeeded: " + report.getTarget());
-                }
             }
         }
-        if (fuzzed)
-            getLogger().lifecycle("Patches Fuzzed!");
         if (error != null) {
             Throwables.propagate(error);
         }
@@ -205,29 +188,11 @@ public class PostDecompileTask extends AbstractEditJarTask
     private static ContextualPatch findPatch(Collection<File> files, ContextProvider provider, Logger logger) throws Exception
     {
         ContextualPatch patch = null;
-        File lastFile = null;
-        boolean success = true;
         for (File f : files)
         {
-            logger.debug("trying MCP patch " + f.getName());
-            lastFile = f;
             patch = ContextualPatch.create(Files.toString(f, Constants.CHARSET), provider).setAccessC14N(true);
 
-            List<PatchReport> errors = patch.patch(true);
-
-            success = true;
-            for (PatchReport rep : errors)
-            {
-                if (!rep.getStatus().isSuccess())
-                    success = false;
-            }
-            if (success) {
-                logger.debug("accepted MCP patch " + f.getName());
-                break;
-            }
-        }
-        if (!success && lastFile != null) {
-            logger.debug("candidate MCP patch may fuzz " + lastFile.getName());
+            patch.patch(true);
         }
         return patch;
     }

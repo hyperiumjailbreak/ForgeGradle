@@ -46,7 +46,6 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Delete;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
@@ -573,8 +572,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 }
             }
         }
-        else
-            project.getLogger().debug("RESOLVED: " + CONFIG_MC_DEPS);
 
         // the natives
         if (project.getConfigurations().getByName(CONFIG_NATIVES).getState() == State.UNRESOLVED)
@@ -585,8 +582,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                     handler.add(CONFIG_NATIVES, lib.getArtifactName());
             }
         }
-        else
-            project.getLogger().debug("RESOLVED: " + CONFIG_NATIVES);
 
         // set asset index
         replacer.putReplacement(REPLACE_ASSET_INDEX, version.assetIndex.id);

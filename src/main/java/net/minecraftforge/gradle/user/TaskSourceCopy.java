@@ -89,13 +89,10 @@ public class TaskSourceCopy extends DefaultTask
             repl.put(Pattern.quote(e.getKey()), val.toString());
         }
 
-        getLogger().debug("REPLACE >> " + repl);
-
         // start traversing tree
         for (DirectoryTree dirTree : source.getSrcDirTrees())
         {
             File dir = dirTree.getDir();
-            getLogger().debug("PARSING DIR >> " + dir);
 
             // handle nonexistant srcDirs
             if (!dir.exists() || !dir.isDirectory())
@@ -115,13 +112,11 @@ public class TaskSourceCopy extends DefaultTask
 
                 if (isIncluded(file))
                 {
-                    getLogger().debug("PARSING FILE IN >> " + file);
                     String text = Files.toString(file, Charsets.UTF_8);
 
                     for (Entry<String, String> entry : repl.entrySet())
                         text = text.replaceAll(entry.getKey(), entry.getValue());
 
-                    getLogger().debug("PARSING FILE OUT >> " + dest);
                     Files.write(text, dest, Charsets.UTF_8);
                 }
                 else

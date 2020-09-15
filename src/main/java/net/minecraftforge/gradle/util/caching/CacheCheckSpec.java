@@ -86,9 +86,6 @@ public class CacheCheckSpec implements Spec<Task>
                     return true;
                 }
 
-                logger.debug("Checksums found: " + foundMD5);
-                logger.debug("Checksums calculated: " + calcMD5);
-
             }
             // error? spit it and do the task.
             catch (Exception e)

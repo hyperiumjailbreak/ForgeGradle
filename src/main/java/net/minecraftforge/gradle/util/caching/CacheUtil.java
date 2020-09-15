@@ -73,7 +73,6 @@ class CacheUtil
             else if (m.isAnnotationPresent(InputFile.class))
             {
                 hashes.add(Constants.hash(task.getProject().file(input.getValue(task))));
-                LOGGER.debug(Constants.hash(task.getProject().file(input.getValue(task))) + " " + input.getValue(task));
             }
             else if (m.isAnnotationPresent(InputDirectory.class))
             {
@@ -87,7 +86,6 @@ class CacheUtil
                 {
                     String hash = Constants.hash(file);
                     hashes.add(hash);
-                    LOGGER.debug(hash + " " + input.getValue(task));
                 }
             }
             else
@@ -101,7 +99,6 @@ class CacheUtil
                 if (obj instanceof String)
                 {
                     hashes.add(Constants.hash((String) obj));
-                    LOGGER.debug(Constants.hash((String) obj) + " " + (String) obj);
                 }
                 else if (obj instanceof File)
                 {
@@ -113,13 +110,11 @@ class CacheUtil
                         for (File i : files)
                         {
                             hashes.add(Constants.hash(i));
-                            LOGGER.debug(Constants.hash(i) + " " + i);
                         }
                     }
                     else
                     {
                         hashes.add(Constants.hash(file));
-                        LOGGER.debug(Constants.hash(file) + " " + file);
                     }
                 }
                 else if (obj instanceof PatternSet)

@@ -76,7 +76,6 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable
 
         for (File source : getConfigFiles())
         {
-            getLogger().debug("Extracting: " + source);
             getProject().zipTree(source).visit(visitor);
         }
     }

@@ -63,8 +63,6 @@ public abstract class AbstractEditJarTask extends CachedTask
 
         if (storeJarInRam())
         {
-            getLogger().debug("Reading jar: " + resolvedInJar);
-
             Map<String, String> sourceMap = Maps.newHashMap();
             Map<String, byte[]> resourceMap = Maps.newHashMap();
 
@@ -73,8 +71,6 @@ public abstract class AbstractEditJarTask extends CachedTask
             doStuffMiddle(sourceMap, resourceMap);
 
             saveJar(resolvedOutJar, sourceMap, resourceMap);
-
-            getLogger().debug("Saving jar: " + resolvedOutJar);
         }
         else
         {
@@ -216,7 +212,6 @@ public abstract class AbstractEditJarTask extends CachedTask
             }
             catch (ZipException ex)
             {
-                getLogger().debug("Duplicate zip entry " + entry.getName() + " in " + input + " writing " + output);
             }
         }
 

@@ -21,13 +21,8 @@ package net.minecraftforge.gradle.util.delayed;
 
 import java.io.Serializable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class TokenReplacer implements Serializable
 {
-    protected static Logger LOGGER = LoggerFactory.getLogger(DelayedBase.class);
-
     private final ReplacementProvider provider;
     private final String              input;
     private String                    outCache;
@@ -42,8 +37,6 @@ public class TokenReplacer implements Serializable
     {
         if (outCache != null)
             return outCache;
-
-        LOGGER.debug("Resolving: {}", input);
 
         StringBuilder builder = new StringBuilder(input);
         boolean saveOutCache = true;
@@ -86,8 +79,6 @@ public class TokenReplacer implements Serializable
 
         if (saveOutCache)
             outCache = out;
-
-        LOGGER.debug("Resolved: {}", out);
 
         return out;
     }
