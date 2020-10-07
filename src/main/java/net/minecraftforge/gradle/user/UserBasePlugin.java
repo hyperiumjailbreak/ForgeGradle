@@ -23,37 +23,15 @@ import static net.minecraftforge.gradle.common.Constants.*;
 import static net.minecraftforge.gradle.user.UserConstants.*;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.artifacts.result.ArtifactResolutionResult;
-import org.gradle.api.artifacts.result.ArtifactResult;
-import org.gradle.api.artifacts.result.ComponentArtifactsResult;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -65,19 +43,10 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.jvm.JvmLibrary;
-import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 import groovy.lang.Closure;
 import net.minecraftforge.gradle.common.BasePlugin;
@@ -132,8 +101,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
         project.getConfigurations().maybeCreate(CONFIG_DEOBF_COMPILE);
         project.getConfigurations().maybeCreate(CONFIG_DEOBF_PROVIDED);
-        project.getConfigurations().maybeCreate(CONFIG_DC_RESOLVED);
-        project.getConfigurations().maybeCreate(CONFIG_DP_RESOLVED);
 
         // create the reobf named container
         NamedDomainObjectContainer<IReobfuscator> reobf = project.container(IReobfuscator.class, new ReobfTaskFactory(this));
@@ -429,7 +396,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                 .plus(project.getConfigurations().getByName(CONFIG_MC_DEPS))
                 .plus(project.getConfigurations().getByName(CONFIG_START)));
 
-        project.getConfigurations().getByName("compile").extendsFrom(project.getConfigurations().getByName(CONFIG_DC_RESOLVED));
         project.getConfigurations().getByName(api.getCompileConfigurationName()).extendsFrom(project.getConfigurations().getByName("compile"));
         project.getConfigurations().getByName("testCompile").extendsFrom(project.getConfigurations().getByName("apiCompile"));
 
@@ -524,87 +490,8 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
                 // add maven repo
                 addMavenRepo(project, "deobfDeps", delayedFile(DIR_DEOBF_DEPS).call().getAbsoluteFile().toURI().getPath());
-
-                remapDeps(project, project.getConfigurations().getByName(CONFIG_DEOBF_COMPILE), CONFIG_DC_RESOLVED, compileDummy);
-                remapDeps(project, project.getConfigurations().getByName(CONFIG_DEOBF_PROVIDED), CONFIG_DP_RESOLVED, providedDummy);
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void remapDeps(Project project, Configuration config, String resolvedConfig, Task dummyTask)
-    {
-        // only allow maven/ivy dependencies
-        for (Dependency dep : config.getIncoming().getDependencies())
-        {
-            if (!(dep instanceof ExternalModuleDependency))
-            {
-                throw new GradleConfigurationException("Only allowed to use maven dependencies for this. If its a jar file, deobfuscate it yourself.");
-            }
-        }
-
-        int taskId = 0;
-
-        // FOR SOURCES!
-
-        HashMap<ComponentIdentifier, ModuleVersionIdentifier> idMap = Maps.newHashMap();
-
-        // FOR BINARIES
-        for (ResolvedArtifact artifact : config.getResolvedConfiguration().getResolvedArtifacts())
-        {
-            ModuleVersionIdentifier module = artifact.getModuleVersion().getId();
-            String group = "deobf." + module.getGroup();
-
-            // Add artifacts that will be remapped to get their sources
-            idMap.put(artifact.getId().getComponentIdentifier(), module);
-
-            TaskSingleDeobfBin deobf = makeTask(config.getName() + "DeobfDepTask" + (taskId++), TaskSingleDeobfBin.class);
-            deobf.setInJar(artifact.getFile());
-            deobf.setOutJar(getFile(DIR_DEOBF_DEPS, group, module.getName(), module.getVersion(), null));
-            deobf.setFieldCsv(delayedFile(CSV_FIELD));
-            deobf.setMethodCsv(delayedFile(CSV_METHOD));
-            deobf.dependsOn(TASK_EXTRACT_MAPPINGS);
-            dummyTask.dependsOn(deobf);
-
-            project.getDependencies().add(resolvedConfig, group + ":" + module.getName() + ":" + module.getVersion());
-        }
-
-        for (DependencyResult depResult : config.getIncoming().getResolutionResult().getAllDependencies())
-        {
-            idMap.put(depResult.getFrom().getId(), depResult.getFrom().getModuleVersion());
-        }
-
-        ArtifactResolutionResult result = project.getDependencies().createArtifactResolutionQuery()
-                .forComponents(idMap.keySet())
-                .withArtifacts(JvmLibrary.class, SourcesArtifact.class)
-                .execute();
-
-        for (ComponentArtifactsResult comp : result.getResolvedComponents())
-        {
-            ModuleVersionIdentifier module = idMap.get(comp.getId());
-            String group = "deobf." + module.getGroup();
-
-            for (ArtifactResult art : comp.getArtifacts(SourcesArtifact.class))
-            {
-                // there can only be One!
-                RemapSources remap = makeTask(config.getName() + "RemapDepSourcesTask" + (taskId++), RemapSources.class);
-                remap.setInJar(((ResolvedArtifactResult) art).getFile());
-                remap.setOutJar(getFile(DIR_DEOBF_DEPS, group, module.getName(), module.getVersion(), "sources"));
-                remap.setFieldsCsv(delayedFile(CSV_FIELD));
-                remap.setMethodsCsv(delayedFile(CSV_METHOD));
-                remap.setParamsCsv(delayedFile(CSV_PARAM));
-                remap.dependsOn(TASK_EXTRACT_MAPPINGS);
-                dummyTask.dependsOn(remap);
-                break;
-            }
-        }
-    }
-
-    private Object getFile(String baseDir, String group, String name, String version, String classifier)
-    {
-        return delayedFile(
-        baseDir + "/" + group.replace('.', '/') + "/" + name + "/" + version + "/" +
-                name + "-" + version + (Strings.isNullOrEmpty(classifier) ? "" : "-" + classifier) + ".jar");
     }
 
     protected void makeRunTasks()
@@ -701,7 +588,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
      */
     protected abstract List<String> getClientJvmArgs(T ext);
 
-    @SuppressWarnings("serial")
     protected void configureIntellij()
     {
         EclipseModel eclipseConv = (EclipseModel) project.getExtensions().getByName("eclipse");
@@ -724,140 +610,5 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
         // fix the idea bug
         ideaConv.getModule().setInheritOutputDirs(true);
-
-        Task task = makeTask("genIntellijRuns", DefaultTask.class);
-        task.doFirst(makeRunDir);
-        task.doLast(new Action<Task>() {
-            @Override
-            public void execute(Task task)
-            {
-                try
-                {
-                    String module = task.getProject().getProjectDir().getCanonicalPath();
-
-                    File root = task.getProject().getProjectDir().getCanonicalFile();
-                    File file = null;
-                    while (file == null && !root.equals(task.getProject().getRootProject().getProjectDir().getCanonicalFile().getParentFile()))
-                    {
-                        file = new File(root, ".idea/workspace.xml");
-                        if (!file.exists())
-                        {
-                            file = null;
-                            // find iws file
-                            for (File f : root.listFiles())
-                            {
-                                if (f.isFile() && f.getName().endsWith(".iws"))
-                                {
-                                    file = f;
-                                    break;
-                                }
-                            }
-                        }
-
-                        root = root.getParentFile();
-                    }
-
-                    if (file == null || !file.exists())
-                        throw new RuntimeException("Intellij workspace file could not be found! are you sure you imported the project into intellij?");
-
-                    DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-                    Document doc = docBuilder.parse(file);
-
-                    injectIntellijRuns(doc, module);
-
-                    // write the content into xml file
-                    TransformerFactory transformerFactory = TransformerFactory.newInstance();
-                    Transformer transformer = transformerFactory.newTransformer();
-                    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-                    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-                    DOMSource source = new DOMSource(doc);
-                    StreamResult result = new StreamResult(file);
-                    //StreamResult result = new StreamResult(System.out);
-
-                    transformer.transform(source, result);
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        });
-        task.setGroup(GROUP_FG);
-        task.setDescription("Generates the ForgeGradle run configurations for intellij Idea");
-
-        if (ideaConv.getWorkspace().getIws() == null)
-            return;
-
-        ideaConv.getWorkspace().getIws().withXml(new Closure<Object>(UserBasePlugin.class)
-        {
-            public Object call(Object... obj)
-            {
-                Element root = ((XmlProvider) this.getDelegate()).asElement();
-                Document doc = root.getOwnerDocument();
-                try
-                {
-                    injectIntellijRuns(doc, project.getProjectDir().getCanonicalPath());
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-
-                return null;
-            }
-        });
-    }
-
-    public final void injectIntellijRuns(Document doc, String module) throws DOMException, IOException
-    {
-        Element root = null;
-
-        {
-            NodeList list = doc.getElementsByTagName("component");
-            for (int i = 0; i < list.getLength(); i++)
-            {
-                Element e = (Element) list.item(i);
-                if ("RunManager".equals(e.getAttribute("name")))
-                {
-                    root = e;
-                    break;
-                }
-            }
-        }
-
-        T ext = getExtension();
-
-        Element child = addXml(root, "configuration", ImmutableMap.of(
-                "name", "Minecraft Client",
-                "type", "Application",
-                "factoryName", "Application",
-                "default", "false"));
-
-        addXml(child, "extension", ImmutableMap.of(
-                "name", "coverage",
-                "enabled", "false",
-                "sample_coverage", "true",
-                "runner", "idea"));
-        addXml(child, "option", ImmutableMap.of("name", "MAIN_CLASS_NAME", "value", GRADLE_START_CLIENT));
-        addXml(child, "option", ImmutableMap.of("name", "VM_PARAMETERS", "value", Joiner.on(' ').join(getClientJvmArgs(ext))));
-        addXml(child, "option", ImmutableMap.of("name", "PROGRAM_PARAMETERS", "value", Joiner.on(' ').join(getClientRunArgs(ext))));
-        addXml(child, "option", ImmutableMap.of("name", "WORKING_DIRECTORY", "value", "file://" + delayedFile("{RUN_DIR}").call().getCanonicalPath().replace(module, "$PROJECT_DIR$")));
-        addXml(child, "option", ImmutableMap.of("name", "ALTERNATIVE_JRE_PATH_ENABLED", "value", "false"));
-        addXml(child, "option", ImmutableMap.of("name", "ALTERNATIVE_JRE_PATH", "value", ""));
-        addXml(child, "option", ImmutableMap.of("name", "ENABLE_SWING_INSPECTOR", "value", "false"));
-        addXml(child, "option", ImmutableMap.of("name", "ENV_VARIABLES"));
-        addXml(child, "option", ImmutableMap.of("name", "PASS_PARENT_ENVS", "value", "true"));
-        addXml(child, "module", ImmutableMap.of("name", ((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName()));
-        addXml(child, "RunnerSettings", ImmutableMap.of("RunnerId", "Run"));
-        addXml(child, "ConfigurationWrapper", ImmutableMap.of("RunnerId", "Run"));
-
-        File f = delayedFile(REPLACE_RUN_DIR).call();
-        if (!f.exists())
-            f.mkdirs();
     }
 }

@@ -34,8 +34,6 @@ public class UserConstants
 
     public static final String CONFIG_DEOBF_COMPILE   = "deobfCompile";
     public static final String CONFIG_DEOBF_PROVIDED  = "deobfProvided";
-    public static final String CONFIG_DC_RESOLVED     = "forgeGradleResolvedDeobfCompile";
-    public static final String CONFIG_DP_RESOLVED     = "forgeGradleResovledDeobfProvided";
 
     public static final String TASK_SETUP_CI          = "setupCiWorkspace";
     public static final String TASK_SETUP_DEV         = "setupDevWorkspace";

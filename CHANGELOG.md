@@ -14,3 +14,5 @@ This document describes changes made in the Hyperium fork of ForgeGradle in orde
 * Add gitpod config
 * Update links and packaging
 * Remove launch4j plugin
+* Remove intellij runs in favor of the start task
+* Remove unused constants

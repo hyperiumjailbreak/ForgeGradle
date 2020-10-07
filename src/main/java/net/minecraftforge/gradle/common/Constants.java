@@ -117,7 +117,7 @@ public class Constants
     public static final String URL_MC_MANIFEST  = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
     public static final String URL_ASSETS       = "http://resources.download.minecraft.net";
     public static final String URL_LIBRARY      = "https://libraries.minecraft.net/";
-    public static final String URL_FORGE_MAVEN  = "http://files.minecraftforge.net/maven";
+    public static final String URL_FORGE_MAVEN  = "https://files.minecraftforge.net/maven";
     public static final String URL_MCP_JSON     = "http://export.mcpbot.bspk.rs/versions.json";
 
     // configs
@@ -132,24 +132,16 @@ public class Constants
     public static final String DIR_MCP_DATA     = REPLACE_CACHE_DIR + "/de/oceanlabs/mcp/mcp/" + REPLACE_MC_VERSION;
     public static final String DIR_MCP_MAPPINGS = REPLACE_CACHE_DIR + "/de/oceanlabs/mcp/mcp_" + REPLACE_MCP_CHANNEL + "/" + REPLACE_MCP_VERSION;
     public static final String JAR_CLIENT_FRESH = REPLACE_CACHE_DIR + "/net/minecraft/minecraft/" + REPLACE_MC_VERSION + "/minecraft-" + REPLACE_MC_VERSION + ".jar";
-    public static final String JAR_SERVER_FRESH = REPLACE_CACHE_DIR + "/net/minecraft/minecraft_server/" + REPLACE_MC_VERSION + "/minecraft_server-" + REPLACE_MC_VERSION + ".jar";
-    public static final String JAR_MERGED       = REPLACE_CACHE_DIR + "/net/minecraft/minecraft_merged/" + REPLACE_MC_VERSION + "/minecraft_merged-" + REPLACE_MC_VERSION + ".jar";
-    public static final String JAR_SERVER_PURE  = REPLACE_CACHE_DIR + "/net/minecraft/minecraft_server/" + REPLACE_MC_VERSION + "/minecraft_server-" + REPLACE_MC_VERSION + "-pure.jar";
-    public static final String JAR_SERVER_DEPS  = REPLACE_CACHE_DIR + "/net/minecraft/minecraft_server/" + REPLACE_MC_VERSION + "/minecraft_server-" + REPLACE_MC_VERSION + "-deps.jar";
     public static final String DIR_NATIVES      = REPLACE_CACHE_DIR + "/net/minecraft/natives/" + REPLACE_MC_VERSION + "/";
     public static final String DIR_ASSETS       = REPLACE_CACHE_DIR + "/assets";
     public static final String JSON_ASSET_INDEX = DIR_ASSETS + "/indexes/" + REPLACE_ASSET_INDEX + ".json";
-    public static final String DIR_JSONS        = REPLACE_CACHE_DIR + "/versionJsons";
-    public static final String JSON_VERSION     = DIR_JSONS + "/" + REPLACE_MC_VERSION + ".json";
+    public static final String JSON_VERSION     = REPLACE_CACHE_DIR + "/versionJsons" + "/" + REPLACE_MC_VERSION + ".json";
 
     public static final String GRADLE_START_CLIENT = "GradleStart";
 
     public static final String[] GRADLE_START_RESOURCES = new String[] {
             "GradleStart.java",
             "net/minecraftforge/gradle/GradleStartCommon.java",
-
-            // 1.7.10 only
-            //makeStart.addResource("net/minecraftforge/gradle/OldPropertyMapSerializer.java");
     };
 
     // mcp data constants
