@@ -47,6 +47,7 @@ import java.util.zip.ZipInputStream;
 import net.minecraftforge.gradle.user.UserBasePlugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.SourceSet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -79,7 +80,7 @@ public class Constants
     public static final SystemArch SYSTEM_ARCH      = getArch();
     public static final Charset    CHARSET          = Charsets.UTF_8;
     public static final String     HASH_FUNC        = "MD5";
-    public static final String     USER_AGENT       = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11";
+    public static final String     USER_AGENT       = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
 
     // extension names
     public static final String EXT_NAME_MC = "minecraft";
@@ -139,11 +140,6 @@ public class Constants
 
     public static final String GRADLE_START_CLIENT = "GradleStart";
 
-    public static final String[] GRADLE_START_RESOURCES = new String[] {
-            "GradleStart.java",
-            "net/minecraftforge/gradle/GradleStartCommon.java",
-    };
-
     // mcp data constants
     public static final String MCP_DATA_SRG       = DIR_MCP_DATA + "/joined.srg";
     public static final String MCP_DATA_EXC       = DIR_MCP_DATA + "/joined.exc";
@@ -173,6 +169,36 @@ public class Constants
     public static final String TASK_EXTRACT_MAPPINGS = "extractMcpMappings";
     public static final String TASK_GENERATE_SRGS    = "genSrgs";
     public static final String TASK_CLEAN_CACHE      = "cleanCache";
+
+    public static final String CONFIG_MC              = "forgeGradleMc";
+    public static final String CONFIG_START           = "forgeGradleGradleStart";
+
+    public static final String CONFIG_DEOBF_COMPILE   = "deobfCompile";
+    public static final String CONFIG_DEOBF_PROVIDED  = "deobfProvided";
+
+    public static final String TASK_SETUP_CI          = "setupCiWorkspace";
+    public static final String TASK_SETUP_DEV         = "setupDevWorkspace";
+    public static final String TASK_SETUP_DECOMP      = "setupDecompWorkspace";
+
+    public static final String TASK_DEOBF_BIN         = "deobfMcMCP";
+    public static final String TASK_DEOBF             = "deobfMcSRG";
+    public static final String TASK_DECOMPILE         = "decompileMc";
+    public static final String TASK_POST_DECOMP       = "fixMcSources";
+    public static final String TASK_REMAP             = "remapMcSources";
+    public static final String TASK_RECOMPILE         = "recompileMc";
+    public static final String TASK_MAKE_START        = "makeStart";
+
+    public static final String EXT_REOBF              = "reobf";
+    public static final String TASK_REOBF             = "reobfJar";
+
+    public static final String TASK_DD_COMPILE        = "deobfCompileDummyTask";
+    public static final String TASK_DD_PROVIDED       = "deobfProvidedDummyTask";
+
+    public static final String REPLACE_CLIENT_TWEAKER = "{RUN_CLIENT_TWEAKER}";
+    public static final String REPLACE_CLIENT_MAIN    = "{RUN_CLIENT_MAIN}";
+    public static final String REPLACE_RUN_DIR        = "{RUN_DIR}";
+
+    public static final String DIR_DEOBF_DEPS         = REPLACE_CACHE_DIR + "/deobfedDeps/";
 
     // util
     public static final String NEWLINE = System.getProperty("line.separator");
@@ -528,5 +554,12 @@ public class Constants
 
         else
             return obj.toString();
+    }
+
+    public static String getSourceSetFormatted(SourceSet sourceSet, String template)
+    {
+        String name = sourceSet.getName();
+        name = name.substring(0, 1).toUpperCase() + name.substring(1); // convert 1st char to upper case.
+        return String.format(template, name);
     }
 }

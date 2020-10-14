@@ -95,7 +95,7 @@ public class UserBaseExtension extends BaseExtension
     public void setRunDir(String value)
     {
         this.runDir = value;
-        replacer.putReplacement(UserConstants.REPLACE_RUN_DIR, runDir);
+        replacer.putReplacement(Constants.REPLACE_RUN_DIR, runDir);
     }
 
     /**

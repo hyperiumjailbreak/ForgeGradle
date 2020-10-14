@@ -20,7 +20,6 @@
 package net.minecraftforge.gradle.user;
 
 import static net.minecraftforge.gradle.common.Constants.*;
-import static net.minecraftforge.gradle.user.UserConstants.*;
 
 import java.io.File;
 import java.util.List;
@@ -275,8 +274,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         // create GradleStart
         final CreateStartTask makeStart = makeTask(TASK_MAKE_START, CreateStartTask.class);
         {
-            makeStart.addResource(GRADLE_START_RESOURCES[1]); // gradle start common.
-            makeStart.addResource(GRADLE_START_RESOURCES[0]); // gradle start
+            makeStart.addResource(GRADLE_START_CLIENT + ".java");
 
             makeStart.addReplacement("@@ASSETINDEX@@", delayedString(REPLACE_ASSET_INDEX));
             makeStart.addReplacement("@@ASSETSDIR@@", delayedFile(REPLACE_CACHE_DIR + "/assets"));
@@ -322,8 +320,8 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                 // set task dependencies
                 if (!isDecomp)
                 {
-                    project.getTasks().getByName("compileJava").dependsOn(UserConstants.TASK_DEOBF_BIN);
-                    project.getTasks().getByName("compileApiJava").dependsOn(UserConstants.TASK_DEOBF_BIN);
+                    project.getTasks().getByName("compileJava").dependsOn(TASK_DEOBF_BIN);
+                    project.getTasks().getByName("compileApiJava").dependsOn(TASK_DEOBF_BIN);
                 }
 
                 afterDecomp(isDecomp, useLocalCache(getExtension()), CONFIG_MC);

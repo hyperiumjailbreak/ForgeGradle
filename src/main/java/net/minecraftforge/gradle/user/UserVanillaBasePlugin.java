@@ -28,10 +28,6 @@ import java.io.File;
 import java.util.List;
 
 import static net.minecraftforge.gradle.common.Constants.*;
-import static net.minecraftforge.gradle.common.Constants.REPLACE_MC_VERSION;
-import static net.minecraftforge.gradle.user.UserConstants.CONFIG_MC;
-import static net.minecraftforge.gradle.user.UserConstants.TASK_SETUP_CI;
-import static net.minecraftforge.gradle.user.UserConstants.TASK_SETUP_DEV;
 
 public abstract class UserVanillaBasePlugin<T extends UserBaseExtension> extends UserBasePlugin<T>
 {
