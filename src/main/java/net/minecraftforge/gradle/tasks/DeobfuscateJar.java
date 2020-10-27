@@ -69,9 +69,6 @@ public class DeobfuscateJar extends CachedTask
     @Input
     private boolean           applyMarkers  = false;
 
-    @Input
-    private boolean           failOnAtError = true;
-
     private Object            outJar;
 
     private Object            log;
@@ -122,16 +119,6 @@ public class DeobfuscateJar extends CachedTask
 
         // remap jar
         remapper.remapJar(input, outJar);
-
-        // throw error for broken AT lines
-        if (accessMap.brokenLines.size() > 0 && failOnAtError)
-        {
-            getLogger().error("{} Broken Access Transformer lines:", accessMap.brokenLines.size());
-            for (String line : accessMap.brokenLines.values())
-            {
-                getLogger().error(" ---  {}", line);
-            }
-        }
     }
 
     public void applyExceptor(File inJar, File outJar, File config, File log) throws IOException
@@ -327,7 +314,6 @@ public class DeobfuscateJar extends CachedTask
     private static final class ErroringRemappingAccessMap extends AccessMap
     {
         private final Map<String, String> renames     = Maps.newHashMap();
-        public final Map<String, String>  brokenLines = Maps.newHashMap();
 
         public ErroringRemappingAccessMap(File[] renameCsvs) throws IOException
         {
@@ -394,21 +380,11 @@ public class DeobfuscateJar extends CachedTask
             }
             String joinedString = Joiner.on('.').join(pts);
             super.addAccessChange(joinedString, accessString);
-            // convert  package.class  to  package/class
-            brokenLines.put(joinedString.replace('.', '/'), symbolString);
         }
 
         @Override
         protected void accessApplied(String key, int oldAccess, int newAccess)
         {
-            // if the access' are equal, then the line is broken, and we dont want to remove it.\
-            // or not... it still applied.. just applied twice somehow.. not an issue.
-//            if (oldAccess != newAccess)
-            {
-                // key added before is in format: package/class{method/field sig}
-                // and the key here is in format: package/class {method/field sig}
-                brokenLines.remove(key.replace(" ", ""));
-            }
         }
     }
 }

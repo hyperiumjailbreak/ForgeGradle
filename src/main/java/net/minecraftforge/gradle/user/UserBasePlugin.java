@@ -179,6 +179,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         exec.dependsOn(jarTask);
         exec.jvmArgs(getClientJvmArgs(getExtension()));
         exec.args(getClientRunArgs(getExtension()));
+        exec.getOutputs().upToDateWhen(execTask -> false);
     }
 
     protected abstract void applyUserPlugin();
