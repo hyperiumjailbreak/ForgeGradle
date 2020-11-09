@@ -17,3 +17,5 @@ This document describes changes made in the Hyperium fork of ForgeGradle in orde
 * Remove intellij runs in favor of the start task
 * Remove unused constants
 * Combine some classes
+* Rename some stuff
+* Add defaults to some values which otherwise would throw errors
