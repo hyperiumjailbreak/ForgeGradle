@@ -113,7 +113,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         makeRunTasks();
 
         // IDE stuff
-        configureIntellij();
+        configureIDEs();
 
         applyUserPlugin();
     }
@@ -207,17 +207,15 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         madeDecompTasks = true; // to guard against stupid programmers
 
         final DeobfuscateJar deobfBin = makeTask(TASK_DEOBF_BIN, DeobfuscateJar.class);
-        {
-            deobfBin.setSrg(delayedFile(SRG_NOTCH_TO_MCP));
-            deobfBin.setExceptorJson(delayedFile(MCP_DATA_EXC_JSON));
-            deobfBin.setExceptorCfg(delayedFile(EXC_MCP));
-            deobfBin.setFieldCsv(delayedFile(CSV_FIELD));
-            deobfBin.setMethodCsv(delayedFile(CSV_METHOD));
-            deobfBin.setApplyMarkers(false);
-            deobfBin.setInJar(inputJar);
-            deobfBin.setOutJar(chooseDeobfOutput(globalPattern, localPattern, "Bin", ""));
-            deobfBin.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_DD_COMPILE, TASK_DD_PROVIDED);
-        }
+        deobfBin.setSrg(delayedFile(SRG_NOTCH_TO_MCP));
+        deobfBin.setExceptorJson(delayedFile(MCP_DATA_EXC_JSON));
+        deobfBin.setExceptorCfg(delayedFile(EXC_MCP));
+        deobfBin.setFieldCsv(delayedFile(CSV_FIELD));
+        deobfBin.setMethodCsv(delayedFile(CSV_METHOD));
+        deobfBin.setApplyMarkers(false);
+        deobfBin.setInJar(inputJar);
+        deobfBin.setOutJar(chooseDeobfOutput(globalPattern, localPattern, "Bin", ""));
+        deobfBin.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_DD_COMPILE, TASK_DD_PROVIDED);
 
         final Object deobfDecompJar = chooseDeobfOutput(globalPattern, localPattern, "", "srgBin");
         final Object decompJar = chooseDeobfOutput(globalPattern, localPattern, "", "decomp");
@@ -226,77 +224,61 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         final Object recompiledJar = chooseDeobfOutput(globalPattern, localPattern, "Src", "");
 
         final DeobfuscateJar deobfDecomp = makeTask(TASK_DEOBF, DeobfuscateJar.class);
-        {
-            deobfDecomp.setSrg(delayedFile(SRG_NOTCH_TO_SRG));
-            deobfDecomp.setExceptorJson(delayedFile(MCP_DATA_EXC_JSON));
-            deobfDecomp.setExceptorCfg(delayedFile(EXC_SRG));
-            deobfDecomp.setApplyMarkers(true);
-            deobfDecomp.setInJar(inputJar);
-            deobfDecomp.setOutJar(deobfDecompJar);
-            deobfDecomp.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_DD_COMPILE, TASK_DD_PROVIDED); // todo grab correct task to depend on
-        }
+        deobfDecomp.setSrg(delayedFile(SRG_NOTCH_TO_SRG));
+        deobfDecomp.setExceptorJson(delayedFile(MCP_DATA_EXC_JSON));
+        deobfDecomp.setExceptorCfg(delayedFile(EXC_SRG));
+        deobfDecomp.setApplyMarkers(true);
+        deobfDecomp.setInJar(inputJar);
+        deobfDecomp.setOutJar(deobfDecompJar);
+        deobfDecomp.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_DD_COMPILE, TASK_DD_PROVIDED); // todo grab correct task to depend on
 
         final ApplyFernFlowerTask decompile = makeTask(TASK_DECOMPILE, ApplyFernFlowerTask.class);
-        {
-            decompile.setInJar(deobfDecompJar);
-            decompile.setOutJar(decompJar);
-            decompile.setClasspath(project.getConfigurations().getByName(Constants.CONFIG_MC_DEPS));
-            decompile.dependsOn(deobfDecomp);
-        }
+        decompile.setInJar(deobfDecompJar);
+        decompile.setOutJar(decompJar);
+        decompile.setClasspath(project.getConfigurations().getByName(Constants.CONFIG_MC_DEPS));
+        decompile.dependsOn(deobfDecomp);
 
         final PostDecompileTask postDecomp = makeTask(TASK_POST_DECOMP, PostDecompileTask.class);
-        {
-            postDecomp.setInJar(decompJar);
-            postDecomp.setOutJar(postDecompJar);
-            postDecomp.setPatches(mcpPatchSet);
-            postDecomp.setAstyleConfig(delayedFile(MCP_DATA_STYLE));
-            postDecomp.dependsOn(decompile);
-        }
+        postDecomp.setInJar(decompJar);
+        postDecomp.setOutJar(postDecompJar);
+        postDecomp.setPatches(mcpPatchSet);
+        postDecomp.setAstyleConfig(delayedFile(MCP_DATA_STYLE));
+        postDecomp.dependsOn(decompile);
 
         final RemapSources remap = makeTask(TASK_REMAP, RemapSources.class);
-        {
-            remap.setInJar(postDecompJar);
-            remap.setOutJar(remapped);
-            remap.setFieldsCsv(delayedFile(CSV_FIELD));
-            remap.setMethodsCsv(delayedFile(CSV_METHOD));
-            remap.setParamsCsv(delayedFile(CSV_PARAM));
-            remap.dependsOn(postDecomp);
-        }
+        remap.setInJar(postDecompJar);
+        remap.setOutJar(remapped);
+        remap.setFieldsCsv(delayedFile(CSV_FIELD));
+        remap.setMethodsCsv(delayedFile(CSV_METHOD));
+        remap.setParamsCsv(delayedFile(CSV_PARAM));
+        remap.dependsOn(postDecomp);
 
         final TaskRecompileMc recompile = makeTask(TASK_RECOMPILE, TaskRecompileMc.class);
-        {
-            recompile.setInSources(remapped);
-            recompile.setClasspath(CONFIG_MC_DEPS);
-            recompile.setOutJar(recompiledJar);
-
-            recompile.dependsOn(remap, TASK_DL_VERSION_JSON);
-        }
+        recompile.setInSources(remapped);
+        recompile.setClasspath(CONFIG_MC_DEPS);
+        recompile.setOutJar(recompiledJar);
+        recompile.dependsOn(remap, TASK_DL_VERSION_JSON);
 
         // create GradleStart
         final CreateStartTask makeStart = makeTask(TASK_MAKE_START, CreateStartTask.class);
-        {
-            makeStart.addResource(GRADLE_START_CLIENT + ".java");
-
-            makeStart.addReplacement("@@ASSETINDEX@@", delayedString(REPLACE_ASSET_INDEX));
-            makeStart.addReplacement("@@ASSETSDIR@@", delayedFile(REPLACE_CACHE_DIR + "/assets"));
-            makeStart.addReplacement("@@NATIVESDIR@@", delayedFile(DIR_NATIVES));
-            makeStart.addReplacement("@@TWEAKERCLIENT@@", delayedString(REPLACE_CLIENT_TWEAKER));
-            makeStart.addReplacement("@@BOUNCERCLIENT@@", delayedString(REPLACE_CLIENT_MAIN));
-
-            makeStart.dependsOn(TASK_DL_ASSET_INDEX, TASK_DL_ASSETS, TASK_EXTRACT_NATIVES);
-
-            makeStart.addReplacement("@@MCVERSION@@", delayedString(REPLACE_MC_VERSION));
-            makeStart.addReplacement("@@SRGDIR@@", delayedFile(DIR_MCP_MAPPINGS + "/srgs/"));
-            makeStart.addReplacement("@@SRG_NOTCH_SRG@@", delayedFile(SRG_NOTCH_TO_SRG));
-            makeStart.addReplacement("@@SRG_NOTCH_MCP@@", delayedFile(SRG_NOTCH_TO_MCP));
-            makeStart.addReplacement("@@SRG_SRG_MCP@@", delayedFile(SRG_SRG_TO_MCP));
-            makeStart.addReplacement("@@SRG_MCP_SRG@@", delayedFile(SRG_MCP_TO_SRG));
-            makeStart.addReplacement("@@SRG_MCP_NOTCH@@", delayedFile(SRG_MCP_TO_NOTCH));
-            makeStart.addReplacement("@@CSVDIR@@", delayedFile(DIR_MCP_MAPPINGS));
-            makeStart.setStartOut(getStartDir());
-            makeStart.addClasspathConfig(CONFIG_MC_DEPS);
-            makeStart.mustRunAfter(deobfBin, recompile);
-        }
+        makeStart.addResource(GRADLE_START_CLIENT + ".java");
+        makeStart.addReplacement("@@ASSETINDEX@@", delayedString(REPLACE_ASSET_INDEX));
+        makeStart.addReplacement("@@ASSETSDIR@@", delayedFile(REPLACE_CACHE_DIR + "/assets"));
+        makeStart.addReplacement("@@NATIVESDIR@@", delayedFile(DIR_NATIVES));
+        makeStart.addReplacement("@@TWEAKERCLIENT@@", delayedString(REPLACE_CLIENT_TWEAKER));
+        makeStart.addReplacement("@@BOUNCERCLIENT@@", delayedString(REPLACE_CLIENT_MAIN));
+        makeStart.dependsOn(TASK_DL_ASSET_INDEX, TASK_DL_ASSETS, TASK_EXTRACT_NATIVES);
+        makeStart.addReplacement("@@MCVERSION@@", delayedString(REPLACE_MC_VERSION));
+        makeStart.addReplacement("@@SRGDIR@@", delayedFile(DIR_MCP_MAPPINGS + "/srgs/"));
+        makeStart.addReplacement("@@SRG_NOTCH_SRG@@", delayedFile(SRG_NOTCH_TO_SRG));
+        makeStart.addReplacement("@@SRG_NOTCH_MCP@@", delayedFile(SRG_NOTCH_TO_MCP));
+        makeStart.addReplacement("@@SRG_SRG_MCP@@", delayedFile(SRG_SRG_TO_MCP));
+        makeStart.addReplacement("@@SRG_MCP_SRG@@", delayedFile(SRG_MCP_TO_SRG));
+        makeStart.addReplacement("@@SRG_MCP_NOTCH@@", delayedFile(SRG_MCP_TO_NOTCH));
+        makeStart.addReplacement("@@CSVDIR@@", delayedFile(DIR_MCP_MAPPINGS));
+        makeStart.setStartOut(getStartDir());
+        makeStart.addClasspathConfig(CONFIG_MC_DEPS);
+        makeStart.mustRunAfter(deobfBin, recompile);
 
         // setup reobf...
         ((NamedDomainObjectContainer<IReobfuscator>) project.getExtensions().getByName(EXT_REOBF)).create("jar");
@@ -400,9 +382,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
         Javadoc javadoc = (Javadoc) project.getTasks().getByName("javadoc");
         javadoc.setClasspath(main.getOutput().plus(main.getCompileClasspath()));
-
-        // libs folder dependencies
-        project.getDependencies().add("compile", project.fileTree("libs"));
 
         // set the compile target
         javaConv.setSourceCompatibility("1.8");
@@ -587,7 +566,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
      */
     protected abstract List<String> getClientJvmArgs(T ext);
 
-    protected void configureIntellij()
+    protected void configureIDEs()
     {
         EclipseModel eclipseConv = (EclipseModel) project.getExtensions().getByName("eclipse");
         eclipseConv.getClasspath().getPlusConfigurations().add(project.getConfigurations().getByName(CONFIG_MC));

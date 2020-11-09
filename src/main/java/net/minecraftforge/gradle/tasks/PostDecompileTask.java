@@ -250,7 +250,6 @@ public class PostDecompileTask extends AbstractEditJarTask
         }
     }
 
-    //@formatter:off
     @Override
     public void doStuffMiddle(Map<String, String> sourceMap, Map<String, byte[]> resourceMap) throws Exception
     {

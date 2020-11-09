@@ -188,7 +188,7 @@ public abstract class BaseExtension
 
         if (!mappings.contains("_"))
         {
-            throw new IllegalArgumentException("Mappings must be in format 'channel_version' or 'custom_something'. eg: snapshot_20140910 custom_AbrarIsCool");
+            throw new IllegalArgumentException("Mappings must be in format 'channel_version' or 'custom_something'.");
         }
 
         int index = mappings.lastIndexOf('_');
@@ -262,15 +262,9 @@ public abstract class BaseExtension
                     // right channel, but wrong mc
                     if (rightChannel && !rightMc)
                     {
-                        project.getLogger().warn("This mapping '" + getMappings() + "' was designed for MC " + mcEntry.getKey() + "! Use at your own peril.");
+                        //p roject.getLogger().warn("This mapping '" + getMappings() + "' was designed for MC " + mcEntry.getKey() + "! Use at your own peril.");
                         replacer.putReplacement(Constants.REPLACE_MCP_MCVERSION, mcEntry.getKey()); // set MC version
                         return;
-                    }
-
-                    // right MC , but wrong channel
-                    else if (rightMc && !rightChannel)
-                    {
-                        throw new GradleConfigurationException("This mapping '" + getMappings() + "' doesnt exist! perhaps you meant '" + channelEntry.getKey() + "_" + mappingsVersion + "'");
                     }
                 }
             }

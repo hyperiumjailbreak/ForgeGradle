@@ -49,7 +49,6 @@ import com.google.common.io.Files;
 
 public class GenSrgs extends CachedTask
 {
-    //@formatter:off
     @InputFile private DelayedFile inSrg;
     @InputFile private DelayedFile inExc;
     @InputFile private DelayedFile methodsCsv;
@@ -61,7 +60,6 @@ public class GenSrgs extends CachedTask
     @Cached @OutputFile private DelayedFile mcpToSrg;
     @Cached @OutputFile private DelayedFile srgExc;
     @Cached @OutputFile private DelayedFile mcpExc;
-    //@formatter:on
     
     @InputFiles
     private final LinkedList<File> extraExcs = new LinkedList<File>();

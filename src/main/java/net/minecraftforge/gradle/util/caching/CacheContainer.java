@@ -39,8 +39,7 @@ public class CacheContainer
     {
         return pool.getUnchecked(task.getClass()).applyTo(task);
     }
-    
-    //@formatter:off
+
     private static final LoadingCache<Class<?>, CacheContainer> pool = CacheBuilder.newBuilder()
             .build(
                     new CacheLoader<Class<?>, CacheContainer>() {
@@ -52,9 +51,8 @@ public class CacheContainer
                     });
     
     protected final List<Annotated> cachedList = Lists.newArrayList();
-    protected final List<Annotated> inputList  = Lists.newArrayList();
-    protected final List<WriteCacheAction> lastActions  = Lists.newArrayList();
-    //@formatter:on
+    protected final List<Annotated> inputList = Lists.newArrayList();
+    protected final List<WriteCacheAction> lastActions = Lists.newArrayList();
 
     private CacheContainer(Class<?> cacheable)
     {

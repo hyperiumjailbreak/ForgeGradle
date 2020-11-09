@@ -97,37 +97,31 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         replacer.putReplacement(REPLACE_BUILD_DIR, project.getBuildDir().getAbsolutePath());
 
         // logging
-        {
-            File projectCacheDir = project.getGradle().getStartParameter().getProjectCacheDir();
-            if (projectCacheDir == null)
-                projectCacheDir = new File(project.getProjectDir(), ".gradle");
+        File projectCacheDir = project.getGradle().getStartParameter().getProjectCacheDir();
+        if (projectCacheDir == null)
+            projectCacheDir = new File(project.getProjectDir(), ".gradle");
 
-            replacer.putReplacement(REPLACE_PROJECT_CACHE_DIR, projectCacheDir.getAbsolutePath());
+        replacer.putReplacement(REPLACE_PROJECT_CACHE_DIR, projectCacheDir.getAbsolutePath());
 
-            FileLogListenner listener = new FileLogListenner(new File(projectCacheDir, "gradle.log"));
-            project.getLogging().addStandardOutputListener(listener);
-            project.getLogging().addStandardErrorListener(listener);
-            project.getGradle().addBuildListener(listener);
-        }
+        FileLogListenner listener = new FileLogListenner(new File(projectCacheDir, "gradle.log"));
+        project.getLogging().addStandardOutputListener(listener);
+        project.getLogging().addStandardErrorListener(listener);
+        project.getGradle().addBuildListener(listener);
 
         // extension objects
+        Type t = getClass().getGenericSuperclass();
+
+        while (t instanceof Class)
         {
-            Type t = getClass().getGenericSuperclass();
-
-            while (t instanceof Class)
-            {
-                t = ((Class) t).getGenericSuperclass();
-            }
-
-            project.getExtensions().create(EXT_NAME_MC, (Class<K>) ((ParameterizedType) t).getActualTypeArguments()[0], this);
+            t = ((Class) t).getGenericSuperclass();
         }
+
+        project.getExtensions().create(EXT_NAME_MC, (Class<K>) ((ParameterizedType) t).getActualTypeArguments()[0], this);
 
         // add buildscript usable tasks
-        {
-            ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
-            ext.set("Download", Download.class);
-            ext.set("EtagDownload", EtagDownloadTask.class);
-        }
+        ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
+        ext.set("Download", Download.class);
+        ext.set("EtagDownload", EtagDownloadTask.class);
 
         // repos
         project.allprojects(proj -> {
@@ -276,48 +270,39 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         }
 
         ExtractConfigTask extractNatives = makeTask(TASK_EXTRACT_NATIVES, ExtractConfigTask.class);
-        {
-            extractNatives.setDestinationDir(delayedFile(DIR_NATIVES));
-            extractNatives.setConfig(CONFIG_NATIVES);
-            extractNatives.exclude("META-INF/**", "META-INF/**");
-            extractNatives.setDoesCache(true);
-            extractNatives.dependsOn(getVersionJson);
-        }
+        extractNatives.setDestinationDir(delayedFile(DIR_NATIVES));
+        extractNatives.setConfig(CONFIG_NATIVES);
+        extractNatives.exclude("META-INF/**", "META-INF/**");
+        extractNatives.setDoesCache(true);
+        extractNatives.dependsOn(getVersionJson);
 
         EtagDownloadTask getAssetsIndex = makeTask(TASK_DL_ASSET_INDEX, EtagDownloadTask.class);
-        {
-            getAssetsIndex.setUrl(new Closure<String>(BasePlugin.class) {
-                @Override
-                public String call()
-                {
-                    return mcVersionJson.assetIndex.url;
-                }
-            });
-            getAssetsIndex.setFile(delayedFile(JSON_ASSET_INDEX));
-            getAssetsIndex.setDieWithError(false);
-            getAssetsIndex.dependsOn(getVersionJson);
-        }
+        getAssetsIndex.setUrl(new Closure<String>(BasePlugin.class) {
+            @Override
+            public String call()
+            {
+                return mcVersionJson.assetIndex.url;
+            }
+        });
+        getAssetsIndex.setFile(delayedFile(JSON_ASSET_INDEX));
+        getAssetsIndex.setDieWithError(false);
+        getAssetsIndex.dependsOn(getVersionJson);
 
         DownloadAssetsTask getAssets = makeTask(TASK_DL_ASSETS, DownloadAssetsTask.class);
-        {
-            getAssets.setAssetsDir(delayedFile(DIR_ASSETS));
-            getAssets.setAssetsIndex(delayedFile(JSON_ASSET_INDEX));
-            getAssets.dependsOn(getAssetsIndex);
-        }
+        getAssets.setAssetsDir(delayedFile(DIR_ASSETS));
+        getAssets.setAssetsIndex(delayedFile(JSON_ASSET_INDEX));
+        getAssets.dependsOn(getAssetsIndex);
 
         Download dlClient = makeTask(TASK_DL_CLIENT, Download.class);
-        {
-            dlClient.setOutput(delayedFile(JAR_CLIENT_FRESH));
-            dlClient.setUrl(new Closure<String>(BasePlugin.class) {
-                @Override
-                public String call()
-                {
-                    return mcVersionJson.getClientUrl();
-                }
-            });
-
-            dlClient.dependsOn(getVersionJson);
-        }
+        dlClient.setOutput(delayedFile(JAR_CLIENT_FRESH));
+        dlClient.setUrl(new Closure<String>(BasePlugin.class) {
+            @Override
+            public String call()
+            {
+                return mcVersionJson.getClientUrl();
+            }
+        });
+        dlClient.dependsOn(getVersionJson);
 
         ExtractConfigTask extractMcpData = makeTask(TASK_EXTRACT_MCP, ExtractConfigTask.class);
         {
@@ -327,35 +312,29 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         }
 
         ExtractConfigTask extractMcpMappings = makeTask(TASK_EXTRACT_MAPPINGS, ExtractConfigTask.class);
-        {
-            extractMcpMappings.setDestinationDir(delayedFile(DIR_MCP_MAPPINGS));
-            extractMcpMappings.setConfig(CONFIG_MAPPINGS);
-            extractMcpMappings.setDoesCache(true);
-        }
+        extractMcpMappings.setDestinationDir(delayedFile(DIR_MCP_MAPPINGS));
+        extractMcpMappings.setConfig(CONFIG_MAPPINGS);
+        extractMcpMappings.setDoesCache(true);
 
         GenSrgs genSrgs = makeTask(TASK_GENERATE_SRGS, GenSrgs.class);
-        {
-            genSrgs.setInSrg(delayedFile(MCP_DATA_SRG));
-            genSrgs.setInExc(delayedFile(MCP_DATA_EXC));
-            genSrgs.setMethodsCsv(delayedFile(CSV_METHOD));
-            genSrgs.setFieldsCsv(delayedFile(CSV_FIELD));
-            genSrgs.setNotchToSrg(delayedFile(Constants.SRG_NOTCH_TO_SRG));
-            genSrgs.setNotchToMcp(delayedFile(Constants.SRG_NOTCH_TO_MCP));
-            genSrgs.setSrgToMcp(delayedFile(SRG_SRG_TO_MCP));
-            genSrgs.setMcpToSrg(delayedFile(SRG_MCP_TO_SRG));
-            genSrgs.setMcpToNotch(delayedFile(SRG_MCP_TO_NOTCH));
-            genSrgs.setSrgExc(delayedFile(EXC_SRG));
-            genSrgs.setMcpExc(delayedFile(EXC_MCP));
-            genSrgs.setDoesCache(true);
-            genSrgs.dependsOn(extractMcpData, extractMcpMappings);
-        }
+        genSrgs.setInSrg(delayedFile(MCP_DATA_SRG));
+        genSrgs.setInExc(delayedFile(MCP_DATA_EXC));
+        genSrgs.setMethodsCsv(delayedFile(CSV_METHOD));
+        genSrgs.setFieldsCsv(delayedFile(CSV_FIELD));
+        genSrgs.setNotchToSrg(delayedFile(Constants.SRG_NOTCH_TO_SRG));
+        genSrgs.setNotchToMcp(delayedFile(Constants.SRG_NOTCH_TO_MCP));
+        genSrgs.setSrgToMcp(delayedFile(SRG_SRG_TO_MCP));
+        genSrgs.setMcpToSrg(delayedFile(SRG_MCP_TO_SRG));
+        genSrgs.setMcpToNotch(delayedFile(SRG_MCP_TO_NOTCH));
+        genSrgs.setSrgExc(delayedFile(EXC_SRG));
+        genSrgs.setMcpExc(delayedFile(EXC_MCP));
+        genSrgs.setDoesCache(true);
+        genSrgs.dependsOn(extractMcpData, extractMcpMappings);
 
         Delete clearCache = makeTask(TASK_CLEAN_CACHE, Delete.class);
-        {
-            clearCache.delete(delayedFile(REPLACE_CACHE_DIR), delayedFile(DIR_LOCAL_CACHE));
-            clearCache.setGroup(GROUP_FG);
-            clearCache.setDescription("Cleares the ForgeGradle cache.");
-        }
+        clearCache.delete(delayedFile(REPLACE_CACHE_DIR), delayedFile(DIR_LOCAL_CACHE));
+        clearCache.setGroup(GROUP_FG);
+        clearCache.setDescription("Cleares the ForgeGradle cache.");
     }
 
     /**

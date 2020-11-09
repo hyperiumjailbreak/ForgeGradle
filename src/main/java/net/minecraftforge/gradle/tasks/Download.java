@@ -55,12 +55,12 @@ public class Download extends CachedTask
 
         getLogger().info("Downloading " + getUrl() + " to " + outputFile);
 
-        HttpURLConnection connect = (HttpURLConnection) (new URL(getUrl())).openConnection();
+        HttpURLConnection connect = (HttpURLConnection) new URL(getUrl()).openConnection();
         connect.setRequestProperty("User-Agent", Constants.USER_AGENT);
         connect.setInstanceFollowRedirects(true);
 
-        ReadableByteChannel  inChannel  = Channels.newChannel(connect.getInputStream());
-        FileChannel          outChannel = new FileOutputStream(outputFile).getChannel();
+        ReadableByteChannel inChannel = Channels.newChannel(connect.getInputStream());
+        FileChannel outChannel = new FileOutputStream(outputFile).getChannel();
 
         // If length is longer than what is available, it copies what is available according to java docs.
         // Therefore, I use Long.MAX_VALUE which is a theoretical maximum.
@@ -69,7 +69,7 @@ public class Download extends CachedTask
         outChannel.close();
         inChannel.close();
 
-        getLogger().info("Download complete");
+        getLogger().info("Download complete for " + getUrl());
     }
 
     public File getOutput()

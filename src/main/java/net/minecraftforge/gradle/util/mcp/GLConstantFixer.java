@@ -36,7 +36,6 @@ import com.google.gson.reflect.TypeToken;
 
 public class GLConstantFixer
 {
-    //@formatter:off
     private static final String[] PACKAGES = {
             "GL11",
             "GL12",
@@ -50,7 +49,6 @@ public class GLConstantFixer
             "ARBVertexBufferObject",
             "ARBShaderObjects"
     };
-    //@formatter:on
 
     private final List<GLConstantGroup> json;
     private static final Pattern        CALL_REGEX     = Pattern.compile("(" + Joiner.on("|").join(PACKAGES) + ")\\.([\\w]+)\\(.+\\)");
@@ -115,7 +113,6 @@ public class GLConstantFixer
                 // iterrate over the JSON
                 for (GLConstantGroup group : json)
                 {
-
                     // ensure that the package and method are defined
                     if (group.functions.containsKey(pack) && group.functions.get(pack).contains(method))
                     {
@@ -161,5 +158,4 @@ public class GLConstantFixer
 
         return text;
     }
-
 }
