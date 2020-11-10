@@ -265,4 +265,8 @@ public abstract class BaseExtension {
     public void installerJsonExclude(String search) {
         excludedLibs.add(search);
     }
+
+    public void setInstallerJsonExcludes(List<String> excludes) {
+        this.excludedLibs = excludes;
+    }
 }
