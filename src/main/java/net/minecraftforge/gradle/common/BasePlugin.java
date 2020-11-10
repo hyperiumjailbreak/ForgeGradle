@@ -517,6 +517,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                         configName = CONFIG_MC_DEPS_CLIENT;
                     }
 
+                    project.getLogger().warn(lib.name);
                     if (!be.excludedLibs.contains(lib.name)) {
                         handler.add(configName, lib.getArtifactName());
                     }
