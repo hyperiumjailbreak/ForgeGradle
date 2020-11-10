@@ -499,7 +499,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
         // apply the dep info.
         DependencyHandler handler = project.getDependencies();
-        project.getLogger().warn(be.excludedLibs.toString());
 
         // actual dependencies
         if (project.getConfigurations().getByName(CONFIG_MC_DEPS).getState() == State.UNRESOLVED)
@@ -518,7 +517,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                         configName = CONFIG_MC_DEPS_CLIENT;
                     }
 
-                    project.getLogger().warn(lib.name);
                     if (!be.excludedLibs.contains(lib.name)) {
                         handler.add(configName, lib.getArtifactName());
                     }
