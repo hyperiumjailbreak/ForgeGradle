@@ -216,33 +216,28 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     private void makeCommonTasks()
     {
         DefaultTask getVersionJson = makeTask(TASK_DL_VERSION_JSON, DefaultTask.class);
-        {
-            getVersionJson.doLast(new Closure<Boolean>(BasePlugin.class) // normalizes to linux endings
+        getVersionJson.doLast(new Closure<Boolean>(BasePlugin.class) {
+            @Override
+            public Boolean call()
             {
-                @Override
-                public Boolean call()
+                try
                 {
-                    try
+                    // normalize the line endings...
+                    final File json = project.file("src/main/resources/installer.target.json");
+                    if (!json.exists())
+                        return true;
+                    if (!replacer.hasReplacement(REPLACE_ASSET_INDEX))
                     {
-                        // normalize the line endings...
-                        final File json = project.file("src/main/resources/installer.target.json");
-                        if (!json.exists())
-                            return true;
-
-                        // grab the AssetIndex if it isnt already there
-                        if (!replacer.hasReplacement(REPLACE_ASSET_INDEX))
-                        {
-                            parseAndStoreVersion(json, json.getParentFile());
-                        }
+                        parseAndStoreVersion(json, json.getParentFile());
                     }
-                    catch (Throwable t)
-                    {
-                        Throwables.propagate(t);
-                    }
-                    return true;
                 }
-            });
-        }
+                catch (Throwable t)
+                {
+                    Throwables.propagate(t);
+                }
+                return true;
+            }
+        });
 
         ExtractConfigTask extractNatives = makeTask(TASK_EXTRACT_NATIVES, ExtractConfigTask.class);
         extractNatives.setDestinationDir(delayedFile(DIR_NATIVES));
@@ -482,6 +477,8 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
      */
     protected Version parseAndStoreVersion(File file, File... inheritanceDirs)
     {
+        final BaseExtension be = (BaseExtension) project.getExtensions().getByName("minecraft");
+
         if (!file.exists())
             return null;
 
@@ -520,7 +517,9 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                         configName = CONFIG_MC_DEPS_CLIENT;
                     }
 
-                    handler.add(configName, lib.getArtifactName());
+                    if (!be.excludedLibs.contains(lib.name)) {
+                        handler.add(configName, lib.getArtifactName());
+                    }
                 }
             }
         }

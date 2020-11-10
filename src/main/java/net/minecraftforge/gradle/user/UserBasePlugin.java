@@ -298,7 +298,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                     return;
 
                 // the recompiled jar exists, or the decomp task is part of the build
-                boolean isDecomp = project.file(recompiledJar).exists() || project.getGradle().getStartParameter().getTaskNames().contains(TASK_SETUP_DECOMP);
+                final boolean isDecomp = project.file(recompiledJar).exists() || project.getGradle().getStartParameter().getTaskNames().contains(TASK_SETUP_DECOMP);
 
                 // set task dependencies
                 if (!isDecomp)

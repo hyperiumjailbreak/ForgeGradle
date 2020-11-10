@@ -40,6 +40,10 @@ repositories {
         name = "mojang"
         url = "https://libraries.minecraft.net/"
     }
+    maven {
+        name "JitPack"
+        url "https://jitpack.io/"
+    }
 }
 
 configurations {
@@ -59,7 +63,7 @@ dependencies {
     compile 'com.cloudbees:diff4j:1.1' // for difing and patching
     compile 'com.github.abrarsyed.jastyle:jAstyle:1.3' // formatting
 
-    compile 'com.google.code.gson:gson:2.2.4' // Used instead of Argo for buuilding changelog.
+    compile 'com.google.code.gson:gson:2.2.4' // Used instead of Argo for building changelog.
     compile 'com.github.tony19:named-regexp:0.2.3' // 1.7 Named regexp features
     compile 'net.minecraftforge:fernflower:2.0-SNAPSHOT' // Fernflower Forge edition
 
@@ -71,7 +75,7 @@ dependencies {
 
     //Stuff used in the GradleStart classes
     compileOnly 'com.mojang:authlib:1.5.16'
-    compileOnly "net.minecraft:launchwrapper:1.11"
+    compileOnly "com.github.Mojang:LegacyLauncher:a4801b70f8"
 }
 
 task wrapper(type: Wrapper) {
@@ -102,8 +106,14 @@ jar {
     }
 }
 
+task sourceJar(type: Jar, dependsOn: classes) {
+    from sourceSets.main.allSource
+    classifier "sources"
+}
+
 artifacts {
     archives jar
+    archives sourceJar
 }
 
 pluginBundle {

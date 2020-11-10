@@ -19,3 +19,4 @@ This document describes changes made in the Hyperium fork of ForgeGradle in orde
 * Combine some classes
 * Rename some stuff
 * Add defaults to some values which otherwise would throw errors
+* Change versionJson to be located at `src/main/resources/installer.target.json`
