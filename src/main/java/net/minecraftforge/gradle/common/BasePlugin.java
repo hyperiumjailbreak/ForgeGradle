@@ -219,13 +219,41 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     @SuppressWarnings("serial")
     private void makeCommonTasks()
     {
+        DefaultTask getVersionJson = makeTask(TASK_DL_VERSION_JSON, DefaultTask.class);
+        {
+            getVersionJson.doLast(new Closure<Boolean>(BasePlugin.class) // normalizes to linux endings
+            {
+                @Override
+                public Boolean call()
+                {
+                    try
+                    {
+                        // normalize the line endings...
+                        final File json = project.file("src/main/resources/installer.target.json");
+                        if (!json.exists())
+                            return true;
+
+                        // grab the AssetIndex if it isnt already there
+                        if (!replacer.hasReplacement(REPLACE_ASSET_INDEX))
+                        {
+                            parseAndStoreVersion(json, json.getParentFile());
+                        }
+                    }
+                    catch (Throwable t)
+                    {
+                        Throwables.propagate(t);
+                    }
+                    return true;
+                }
+            });
+        }
+
         ExtractConfigTask extractNatives = makeTask(TASK_EXTRACT_NATIVES, ExtractConfigTask.class);
         extractNatives.setDestinationDir(delayedFile(DIR_NATIVES));
         extractNatives.setConfig(CONFIG_NATIVES);
         extractNatives.exclude("META-INF/**", "META-INF/**");
         extractNatives.setDoesCache(true);
-
-        parseAndStoreVersion(project.file("src/main/resources/installer.target.json"), (File[]) null);
+        extractNatives.dependsOn(getVersionJson);
 
         EtagDownloadTask getAssetsIndex = makeTask(TASK_DL_ASSET_INDEX, EtagDownloadTask.class);
         getAssetsIndex.setUrl(new Closure<String>(BasePlugin.class) {
@@ -237,6 +265,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         });
         getAssetsIndex.setFile(delayedFile(JSON_ASSET_INDEX));
         getAssetsIndex.setDieWithError(false);
+        getAssetsIndex.dependsOn(getVersionJson);
 
         DownloadAssetsTask getAssets = makeTask(TASK_DL_ASSETS, DownloadAssetsTask.class);
         getAssets.setAssetsDir(delayedFile(DIR_ASSETS));
@@ -252,6 +281,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 return mcVersionJson.getClientUrl();
             }
         });
+        dlClient.dependsOn(getVersionJson);
 
         ExtractConfigTask extractMcpData = makeTask(TASK_EXTRACT_MCP, ExtractConfigTask.class);
         {
