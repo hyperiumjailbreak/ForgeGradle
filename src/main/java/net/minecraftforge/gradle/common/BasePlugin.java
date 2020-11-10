@@ -28,10 +28,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 
-import net.minecraftforge.gradle.util.json.version.ManifestVersion;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
@@ -77,7 +75,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     public Project       project;
     public ReplacementProvider replacer = new ReplacementProvider();
 
-    private Map<String, ManifestVersion> mcManifest;
     private Version                      mcVersionJson;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -177,7 +174,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         // MC manifest json
         jsonCache = cacheFile("McManifest.json");
         etagFile = new File(jsonCache.getAbsolutePath() + ".etag");
-        mcManifest = JsonFactory.GSON.fromJson(getWithEtag(URL_MC_MANIFEST, jsonCache, etagFile), new TypeToken<Map<String, ManifestVersion>>() {}.getType());
     }
 
     protected void afterEvaluate()
@@ -223,58 +219,13 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     @SuppressWarnings("serial")
     private void makeCommonTasks()
     {
-        EtagDownloadTask getVersionJson = makeTask(TASK_DL_VERSION_JSON, EtagDownloadTask.class);
-        {
-            getVersionJson.setUrl(new Closure<String>(BasePlugin.class) {
-                @Override
-                public String call()
-                {
-                    return mcManifest.get(getExtension().getVersion()).url;
-                }
-            });
-            getVersionJson.setFile(delayedFile(JSON_VERSION));
-            getVersionJson.setDieWithError(false);
-            getVersionJson.doLast(new Closure<Boolean>(BasePlugin.class) // normalizes to linux endings
-            {
-                @Override
-                public Boolean call()
-                {
-                    try
-                    {
-                        // normalize the line endings...
-                        File json = delayedFile(JSON_VERSION).call();
-                        if (!json.exists())
-                            return true;
-
-                        List<String> lines = Files.readLines(json, Charsets.UTF_8);
-                        StringBuilder buf = new StringBuilder();
-                        for (String line : lines)
-                        {
-                            buf.append(line).append('\n');
-                        }
-                        Files.write(buf.toString().getBytes(Charsets.UTF_8), json);
-
-                        // grab the AssetIndex if it isnt already there
-                        if (!replacer.hasReplacement(REPLACE_ASSET_INDEX))
-                        {
-                            parseAndStoreVersion(json, json.getParentFile());
-                        }
-                    }
-                    catch (Throwable t)
-                    {
-                        Throwables.propagate(t);
-                    }
-                    return true;
-                }
-            });
-        }
-
         ExtractConfigTask extractNatives = makeTask(TASK_EXTRACT_NATIVES, ExtractConfigTask.class);
         extractNatives.setDestinationDir(delayedFile(DIR_NATIVES));
         extractNatives.setConfig(CONFIG_NATIVES);
         extractNatives.exclude("META-INF/**", "META-INF/**");
         extractNatives.setDoesCache(true);
-        extractNatives.dependsOn(getVersionJson);
+
+        parseAndStoreVersion(project.file("src/main/resources/installer.target.json"), (File[]) null);
 
         EtagDownloadTask getAssetsIndex = makeTask(TASK_DL_ASSET_INDEX, EtagDownloadTask.class);
         getAssetsIndex.setUrl(new Closure<String>(BasePlugin.class) {
@@ -286,7 +237,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         });
         getAssetsIndex.setFile(delayedFile(JSON_ASSET_INDEX));
         getAssetsIndex.setDieWithError(false);
-        getAssetsIndex.dependsOn(getVersionJson);
 
         DownloadAssetsTask getAssets = makeTask(TASK_DL_ASSETS, DownloadAssetsTask.class);
         getAssets.setAssetsDir(delayedFile(DIR_ASSETS));
@@ -302,7 +252,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 return mcVersionJson.getClientUrl();
             }
         });
-        dlClient.dependsOn(getVersionJson);
 
         ExtractConfigTask extractMcpData = makeTask(TASK_EXTRACT_MCP, ExtractConfigTask.class);
         {
@@ -505,7 +454,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
      * Does nothing (returns null) if the file is not found, but hard-crashes if it could not be parsed.
      * @param file version file to parse
      * @param inheritanceDirs folders to look for the parent json, should include DIR_JSON
-     * @return NULL if the file doesnt exist
+     * @return null if the file doesnt exist
      */
     protected Version parseAndStoreVersion(File file, File... inheritanceDirs)
     {

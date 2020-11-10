@@ -489,7 +489,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         exec.setErrorOutput(System.err);
 
         exec.setGroup("ForgeGradle");
-        exec.setDescription("Runs the Minecraft client");
+        exec.setDescription("Runs the Minecraft client.");
 
         exec.doFirst(makeRunDir);
 

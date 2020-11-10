@@ -115,7 +115,6 @@ public class Constants
     public static final String REPLACE_ASSET_INDEX       = "{ASSET_INDEX}";
 
     // urls
-    public static final String URL_MC_MANIFEST  = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
     public static final String URL_ASSETS       = "http://resources.download.minecraft.net";
     public static final String URL_LIBRARY      = "https://libraries.minecraft.net/";
     public static final String URL_FORGE_MAVEN  = "https://files.minecraftforge.net/maven";
@@ -136,7 +135,6 @@ public class Constants
     public static final String DIR_NATIVES      = REPLACE_CACHE_DIR + "/net/minecraft/natives/" + REPLACE_MC_VERSION + "/";
     public static final String DIR_ASSETS       = REPLACE_CACHE_DIR + "/assets";
     public static final String JSON_ASSET_INDEX = DIR_ASSETS + "/indexes/" + REPLACE_ASSET_INDEX + ".json";
-    public static final String JSON_VERSION     = REPLACE_CACHE_DIR + "/versionJsons" + "/" + REPLACE_MC_VERSION + ".json";
 
     public static final String GRADLE_START_CLIENT = "GradleStart";
 
