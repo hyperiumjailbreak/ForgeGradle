@@ -170,10 +170,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         File jsonCache = cacheFile("McpMappings.json");
         File etagFile = new File(jsonCache.getAbsolutePath() + ".etag");
         getExtension().mcpJson = JsonFactory.GSON.fromJson(getWithEtag(URL_MCP_JSON, jsonCache, etagFile), new TypeToken<Map<String, Map<String, int[]>>>() {}.getType());
-
-        // MC manifest json
-        jsonCache = cacheFile("McManifest.json");
-        etagFile = new File(jsonCache.getAbsolutePath() + ".etag");
     }
 
     protected void afterEvaluate()
@@ -284,11 +280,9 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         dlClient.dependsOn(getVersionJson);
 
         ExtractConfigTask extractMcpData = makeTask(TASK_EXTRACT_MCP, ExtractConfigTask.class);
-        {
-            extractMcpData.setDestinationDir(delayedFile(DIR_MCP_DATA));
-            extractMcpData.setConfig(CONFIG_MCP_DATA);
-            extractMcpData.setDoesCache(true);
-        }
+        extractMcpData.setDestinationDir(delayedFile(DIR_MCP_DATA));
+        extractMcpData.setConfig(CONFIG_MCP_DATA);
+        extractMcpData.setDoesCache(true);
 
         ExtractConfigTask extractMcpMappings = makeTask(TASK_EXTRACT_MAPPINGS, ExtractConfigTask.class);
         extractMcpMappings.setDestinationDir(delayedFile(DIR_MCP_MAPPINGS));
