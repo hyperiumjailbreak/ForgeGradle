@@ -27,7 +27,7 @@ public class Version
     {
         if (_libraries == null)
         {
-            _libraries = new ArrayList<Library>();
+            _libraries = new ArrayList<>();
             if (libraries == null) return _libraries;
             for (Library lib : libraries)
             {
@@ -43,11 +43,6 @@ public class Version
     public String getClientUrl()
     {
         return downloads.get("client").url;
-    }
-
-    public String getServerUrl()
-    {
-        return downloads.get("server").url;
     }
 
     /**

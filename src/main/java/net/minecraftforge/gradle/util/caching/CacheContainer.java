@@ -44,8 +44,7 @@ public class CacheContainer
             .build(
                     new CacheLoader<Class<?>, CacheContainer>() {
                         @Override
-                        public CacheContainer load(Class<?> key) throws Exception
-                        {
+                        public CacheContainer load(Class<?> key) {
                             return new CacheContainer(key);
                         }
                     });

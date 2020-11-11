@@ -23,8 +23,6 @@ import net.minecraftforge.gradle.common.Constants;
 
 public class FFPatcher
 {
-    static final String MODIFIERS = "public|protected|private|static|abstract|final|native|synchronized|transient|volatile|strictfp";
-
     // Remove TRAILING whitespace
     private static final String TRAILING = "(?m)[ \\t]+$";
 

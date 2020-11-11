@@ -10,7 +10,6 @@ public class Library
     public String name;
     public List<OSRule> rules;
     public Map<OS, String> natives;
-    public ExtractRule extract;
     private String url;
     
     private Action _applies = null;
@@ -36,24 +35,6 @@ public class Library
     }
 
     private Artifact _artifact = null;
-    public String getPath()
-    {
-        if (_artifact == null)
-        {
-            _artifact = new Artifact(name);
-        }
-        return _artifact.getPath();
-    }
-
-    public String getPathNatives()
-    {
-        if (natives == null) return null;
-        if (_artifact == null)
-        {
-            _artifact = new Artifact(name);
-        }
-        return _artifact.getPath(natives.get(OS.CURRENT));
-    }
     
     public String getArtifactName()
     {
@@ -77,7 +58,7 @@ public class Library
         return name;
     }
 
-    private class Artifact
+    private static class Artifact
     {
         private String domain;
         private String name;
@@ -111,18 +92,6 @@ public class Library
             if (classifier != null) ret += ":" + classifier;
             if (!"jar".equals(ext)) ret += "@" + ext;
             return ret;
-        }
-        
-        public String getPath(){ return getPath(classifier); }
-        public String getPath(String classifier)
-        {
-            String ret = String.format("%s/%s/%s/%s-%s", domain.replace('.', '/'), name, version, name, version);
-            if (classifier != null && classifier.indexOf('$') > -1)
-            {
-                classifier = classifier.replace("${arch}", Constants.SYSTEM_ARCH.toString());
-            }
-            if (classifier != null) ret += "-" + classifier;
-            return ret + "." + ext;
         }
     }
 }

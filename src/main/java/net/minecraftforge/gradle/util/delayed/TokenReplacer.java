@@ -82,13 +82,4 @@ public class TokenReplacer implements Serializable
 
         return out;
     }
-
-    /**
-     * Cleanes the cached replacedOutput.
-     * This is only useful if the token replacements have changed since the data was cached.
-     */
-    public void cleanCache()
-    {
-        outCache = null;
-    }
 }

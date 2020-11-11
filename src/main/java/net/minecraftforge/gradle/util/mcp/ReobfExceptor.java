@@ -417,7 +417,7 @@ public class ReobfExceptor
         public String name;
         public String desc;
         public int access;
-        public List<Insn> insns = new ArrayList<Insn>();
+        public List<Insn> insns = new ArrayList<>();
         private String cache = null;
         
         public AccessInfo(String owner, String name, String desc)

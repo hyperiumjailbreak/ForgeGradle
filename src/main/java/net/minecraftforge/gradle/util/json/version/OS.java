@@ -15,7 +15,7 @@ public enum OS
     public static final OS CURRENT = getCurrentPlatform();
     public static final String VERSION = System.getProperty("os.version");
 
-    private OS(String name, String... aliases)
+    OS(String name, String... aliases)
     {
         this.name = name;
         this.aliases = aliases;

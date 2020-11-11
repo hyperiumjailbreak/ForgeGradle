@@ -17,17 +17,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
  * USA
  */
-package net.minecraftforge.gradle.util.delayed;
 
+package net.minecraftforge.gradle.util.delayed;
 
 @SuppressWarnings("serial")
 public class DelayedString extends DelayedBase<String>
 {
-    public DelayedString(Class<?> owner, ReplacementProvider provider,  String pattern)
-    {
-        super(owner, provider, pattern);
-    }
-    
     public DelayedString(Class<?> owner, TokenReplacer replacer)
     {
         super(owner, replacer);

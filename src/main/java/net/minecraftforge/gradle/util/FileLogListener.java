@@ -21,7 +21,6 @@ package net.minecraftforge.gradle.util;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
@@ -52,12 +51,7 @@ public class FileLogListener implements StandardOutputListener, BuildListener
             out.createNewFile();
             
             writer = Files.newWriter(out, Charset.defaultCharset());
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             e.printStackTrace();
         }
