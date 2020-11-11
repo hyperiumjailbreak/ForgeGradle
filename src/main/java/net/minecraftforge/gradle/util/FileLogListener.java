@@ -33,12 +33,12 @@ import org.gradle.api.logging.StandardOutputListener;
 
 import com.google.common.io.Files;
 
-public class FileLogListenner implements StandardOutputListener, BuildListener
+public class FileLogListener implements StandardOutputListener, BuildListener
 {
     private final File out;
     private BufferedWriter writer;
     
-    public FileLogListenner(File file)
+    public FileLogListener(File file)
     {
         out = file;
         

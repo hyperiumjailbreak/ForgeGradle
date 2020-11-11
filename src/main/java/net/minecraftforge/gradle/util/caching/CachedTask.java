@@ -28,7 +28,7 @@ import org.gradle.api.DefaultTask;
 public abstract class CachedTask extends DefaultTask implements ICachableTask
 {
     private boolean doesCache = true;
-    private boolean cacheSet  = false;
+    private boolean cacheSet = false;
 
     public CachedTask()
     {

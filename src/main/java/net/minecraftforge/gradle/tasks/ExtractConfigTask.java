@@ -187,6 +187,7 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable
         return patternSet.include(arg0);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public PatternFilterable include(Closure arg0)
     {

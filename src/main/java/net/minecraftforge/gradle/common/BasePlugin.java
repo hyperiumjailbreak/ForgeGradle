@@ -62,7 +62,7 @@ import net.minecraftforge.gradle.tasks.DownloadAssetsTask;
 import net.minecraftforge.gradle.tasks.EtagDownloadTask;
 import net.minecraftforge.gradle.tasks.ExtractConfigTask;
 import net.minecraftforge.gradle.tasks.GenSrgs;
-import net.minecraftforge.gradle.util.FileLogListenner;
+import net.minecraftforge.gradle.util.FileLogListener;
 import net.minecraftforge.gradle.util.GradleConfigurationException;
 import net.minecraftforge.gradle.util.delayed.DelayedFile;
 import net.minecraftforge.gradle.util.delayed.DelayedFileTree;
@@ -103,7 +103,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
         replacer.putReplacement(REPLACE_PROJECT_CACHE_DIR, projectCacheDir.getAbsolutePath());
 
-        FileLogListenner listener = new FileLogListenner(new File(projectCacheDir, "gradle.log"));
+        FileLogListener listener = new FileLogListener(new File(projectCacheDir, "gradle.log"));
         project.getLogging().addStandardOutputListener(listener);
         project.getLogging().addStandardErrorListener(listener);
         project.getGradle().addBuildListener(listener);
@@ -505,7 +505,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
      * Does nothing (returns null) if the file is not found, but hard-crashes if it could not be parsed.
      * @param file version file to parse
      * @param inheritanceDirs folders to look for the parent json, should include DIR_JSON
-     * @return NULL if the file doesnt exist
+     * @return null if the file doesnt exist
      */
     protected Version parseAndStoreVersion(File file, File... inheritanceDirs)
     {

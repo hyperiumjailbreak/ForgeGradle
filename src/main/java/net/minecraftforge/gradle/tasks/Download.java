@@ -49,18 +49,19 @@ public class Download extends CachedTask
     @TaskAction
     public void doTask() throws IOException
     {
-        File outputFile = getProject().file(getOutput());
+        final File outputFile = getProject().file(getOutput());
         outputFile.getParentFile().mkdirs();
         outputFile.createNewFile();
 
         getLogger().info("Downloading " + getUrl() + " to " + outputFile);
 
-        HttpURLConnection connect = (HttpURLConnection) new URL(getUrl()).openConnection();
+        final HttpURLConnection connect = (HttpURLConnection) new URL(getUrl()).openConnection();
         connect.setRequestProperty("User-Agent", Constants.USER_AGENT);
         connect.setInstanceFollowRedirects(true);
 
-        ReadableByteChannel inChannel = Channels.newChannel(connect.getInputStream());
-        FileChannel outChannel = new FileOutputStream(outputFile).getChannel();
+        final ReadableByteChannel inChannel = Channels.newChannel(connect.getInputStream());
+        final FileOutputStream outStream = new FileOutputStream(outputFile);
+        final FileChannel outChannel = outStream.getChannel();
 
         // If length is longer than what is available, it copies what is available according to java docs.
         // Therefore, I use Long.MAX_VALUE which is a theoretical maximum.
@@ -68,6 +69,7 @@ public class Download extends CachedTask
 
         outChannel.close();
         inChannel.close();
+        outStream.close();
 
         getLogger().info("Download complete for " + getUrl());
     }
