@@ -47,7 +47,6 @@ import java.util.zip.ZipInputStream;
 import net.minecraftforge.gradle.user.UserBasePlugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.SourceSet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -208,7 +207,7 @@ public class Constants
     {
         URL[] urls = ((URLClassLoader) UserBasePlugin.class.getClassLoader()).getURLs();
 
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         for (URL url : urls)
         {
             list.add(url.getPath());
@@ -218,12 +217,12 @@ public class Constants
 
     public static URL[] toUrls(FileCollection collection) throws MalformedURLException
     {
-        ArrayList<URL> urls = new ArrayList<URL>();
+        ArrayList<URL> urls = new ArrayList<>();
 
         for (File file : collection.getFiles())
             urls.add(file.toURI().toURL());
 
-        return urls.toArray(new URL[urls.size()]);
+        return urls.toArray(new URL[0]);
     }
 
     public static File getMinecraftDirectory()
@@ -362,7 +361,7 @@ public class Constants
 
     public static List<String> hashAll(File file)
     {
-        LinkedList<String> list = new LinkedList<String>();
+        LinkedList<String> list = new LinkedList<>();
 
         if (file.isDirectory())
         {
@@ -413,9 +412,8 @@ public class Constants
             // convert to string
             StringBuilder result = new StringBuilder();
 
-            for (int i = 0; i < hash.length; i++)
-            {
-                result.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
+            for (byte b : hash) {
+                result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
             return result.toString();
         }
@@ -446,9 +444,8 @@ public class Constants
 
             StringBuilder result = new StringBuilder();
 
-            for (int i = 0; i < hash.length; i++)
-            {
-                result.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
+            for (byte b : hash) {
+                result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
             return result.toString();
         }
@@ -554,12 +551,5 @@ public class Constants
 
         else
             return obj.toString();
-    }
-
-    public static String getSourceSetFormatted(SourceSet sourceSet, String template)
-    {
-        String name = sourceSet.getName();
-        name = name.substring(0, 1).toUpperCase() + name.substring(1); // convert 1st char to upper case.
-        return String.format(template, name);
     }
 }

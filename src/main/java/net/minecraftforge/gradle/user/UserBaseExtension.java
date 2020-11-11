@@ -32,11 +32,11 @@ import net.minecraftforge.gradle.common.Constants;
 
 public class UserBaseExtension extends BaseExtension
 {
-    private HashMap<String, Object> replacements     = new HashMap<String, Object>();
-    private ArrayList<String>       includes         = new ArrayList<String>();
-    private String                  runDir           = "run";
-    private List<Object>            clientJvmArgs    = Lists.newArrayList();
-    private List<Object>            clientRunArgs    = Lists.newArrayList();
+    private HashMap<String, Object> replacements = new HashMap<>();
+    private ArrayList<String> includes = new ArrayList<>();
+    private String runDir = "run";
+    private List<Object> clientJvmArgs = Lists.newArrayList();
+    private List<Object> clientRunArgs = Lists.newArrayList();
 
     public UserBaseExtension(UserBasePlugin<? extends UserBaseExtension> plugin)
     {

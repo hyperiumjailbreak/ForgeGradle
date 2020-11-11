@@ -34,8 +34,8 @@ public abstract class TweakerPlugin extends UserVanillaBasePlugin<TweakerExtensi
     @Override
     protected void applyVanillaUserPlugin()
     {
-        // add launchwrapper dep.. cuz everyone uses it apperantly..
-        project.getDependencies().add(Constants.CONFIG_MC_DEPS, "net.minecraft:launchwrapper:1.11");
+        // add launchwrapper dep.. cuz everyone uses it apparently..
+        project.getDependencies().add(Constants.CONFIG_MC_DEPS, "net.minecraft:launchwrapper:1.12");
     }
 
     @Override

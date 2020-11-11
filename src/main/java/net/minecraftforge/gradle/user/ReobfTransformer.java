@@ -23,7 +23,6 @@ import java.io.Serializable;
 
 public interface ReobfTransformer extends Serializable
 {
-
     /**
      * Called for each class to be reobfuscated
      *
@@ -33,5 +32,5 @@ public interface ReobfTransformer extends Serializable
      *
      * @return The modified class bytes
      */
-    public abstract byte[] transform(byte[] data);
+    byte[] transform(byte[] data);
 }

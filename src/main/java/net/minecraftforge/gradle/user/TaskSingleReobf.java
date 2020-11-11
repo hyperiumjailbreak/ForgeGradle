@@ -274,7 +274,7 @@ public class TaskSingleReobf extends DefaultTask
 
     public FileCollection getSecondarySrgFiles()
     {
-        List<File> files = new ArrayList<File>(secondarySrgFiles.size());
+        List<File> files = new ArrayList<>(secondarySrgFiles.size());
 
         for (Object thing : getProject().files(secondarySrgFiles))
         {

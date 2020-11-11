@@ -21,8 +21,6 @@ package net.minecraftforge.gradle.user;
 
 import com.google.common.collect.ImmutableMap;
 import net.minecraftforge.gradle.common.Constants;
-import org.gradle.api.Action;
-import org.gradle.api.Project;
 
 import java.io.File;
 import java.util.List;
@@ -40,7 +38,7 @@ public abstract class UserVanillaBasePlugin<T extends UserBaseExtension> extends
         // patterns
         String cleanSuffix = "%s-" + REPLACE_MC_VERSION;
         String dirtySuffix = "%s-" + REPLACE_MC_VERSION + "-PROJECT(" + project.getName() + ")";
-        String jarName = getJarName();
+        final String jarName = getJarName();
 
         createDecompTasks(CLEAN_ROOT + jarName + "/" + REPLACE_MC_VERSION + "/" + MCP_INSERT + "/" + jarName + cleanSuffix, DIR_LOCAL_CACHE + "/" + jarName + dirtySuffix);
 
@@ -57,19 +55,15 @@ public abstract class UserVanillaBasePlugin<T extends UserBaseExtension> extends
     protected void afterDecomp(final boolean isDecomp, final boolean useLocalCache, final String mcConfig)
     {
         // add MC repo to all projects
-        project.allprojects(new Action<Project>() {
-            @Override
-            public void execute(Project proj)
-            {
-                String cleanRoot = CLEAN_ROOT + getJarName() + "/" + REPLACE_MC_VERSION + "/" + MCP_INSERT;
-                addFlatRepo(proj, "VanillaMcRepo", delayedFile(useLocalCache ? DIR_LOCAL_CACHE : cleanRoot).call());
-            }
+        project.allprojects(proj -> {
+            String cleanRoot = CLEAN_ROOT + getJarName() + "/" + REPLACE_MC_VERSION + "/" + MCP_INSERT;
+            addFlatRepo(proj, "VanillaMcRepo", delayedFile(useLocalCache ? DIR_LOCAL_CACHE : cleanRoot).call());
         });
 
         // add the Mc dep
-        String group = "net.minecraft";
-        String artifact = getJarName() + (isDecomp ? "Src" : "Bin");
-        String version = delayedString(REPLACE_MC_VERSION).call() + (useLocalCache ? "-PROJECT(" + project.getName() + ")" : "");
+        final String group = "net.minecraft";
+        final String artifact = getJarName() + (isDecomp ? "Src" : "Bin");
+        final String version = delayedString(REPLACE_MC_VERSION).call() + (useLocalCache ? "-PROJECT(" + project.getName() + ")" : "");
 
         project.getDependencies().add(CONFIG_MC, ImmutableMap.of("group", group, "name", artifact, "version", version));
     }

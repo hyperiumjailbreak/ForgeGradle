@@ -27,7 +27,6 @@ import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
@@ -144,13 +143,9 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         mapConfigurations();
 
         // configure source replacement.
-        project.getTasks().withType(TaskSourceCopy.class, new Action<TaskSourceCopy>() {
-            @Override
-            public void execute(TaskSourceCopy t)
-            {
-                t.replace(getExtension().getReplacements());
-                t.include(getExtension().getIncludes());
-            }
+        project.getTasks().withType(TaskSourceCopy.class, t -> {
+            t.replace(getExtension().getReplacements());
+            t.include(getExtension().getIncludes());
         });
 
         // add task depends for reobf
@@ -290,25 +285,21 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
         // configure MC compiling. This AfterEvaluate section should happen after the one made in
         // also configure the dummy task dependencies
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project)
+        project.afterEvaluate(project -> {
+            if (project.getState().getFailure() != null)
+                return;
+
+            // the recompiled jar exists, or the decomp task is part of the build
+            boolean isDecomp = project.file(recompiledJar).exists() || project.getGradle().getStartParameter().getTaskNames().contains(TASK_SETUP_DECOMP);
+
+            // set task dependencies
+            if (!isDecomp)
             {
-                if (project.getState().getFailure() != null)
-                    return;
-
-                // the recompiled jar exists, or the decomp task is part of the build
-                boolean isDecomp = project.file(recompiledJar).exists() || project.getGradle().getStartParameter().getTaskNames().contains(TASK_SETUP_DECOMP);
-
-                // set task dependencies
-                if (!isDecomp)
-                {
-                    project.getTasks().getByName("compileJava").dependsOn(TASK_DEOBF_BIN);
-                    project.getTasks().getByName("compileApiJava").dependsOn(TASK_DEOBF_BIN);
-                }
-
-                afterDecomp(isDecomp, useLocalCache(getExtension()), CONFIG_MC);
+                project.getTasks().getByName("compileJava").dependsOn(TASK_DEOBF_BIN);
+                project.getTasks().getByName("compileApiJava").dependsOn(TASK_DEOBF_BIN);
             }
+
+            afterDecomp(isDecomp, useLocalCache(getExtension()), CONFIG_MC);
         });
     }
 
@@ -395,47 +386,43 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     {
         JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
 
-        Action<SourceSet> action = new Action<SourceSet>() {
-            @Override
-            public void execute(SourceSet set) {
+        Action<SourceSet> action = set -> {
+            TaskSourceCopy task;
 
-                TaskSourceCopy task;
+            String capName = set.getName().substring(0, 1).toUpperCase() + set.getName().substring(1);
+            String taskPrefix = "source"+capName;
+            File dirRoot = new File(project.getBuildDir(), "sources/"+set.getName());
 
-                String capName = set.getName().substring(0, 1).toUpperCase() + set.getName().substring(1);
-                String taskPrefix = "source"+capName;
-                File dirRoot = new File(project.getBuildDir(), "sources/"+set.getName());
+            // java
+            {
+                File dir = new File(dirRoot, "java");
 
-                // java
-                {
-                    File dir = new File(dirRoot, "java");
+                task = makeTask(taskPrefix+"Java", TaskSourceCopy.class);
+                task.setSource(set.getJava());
+                task.setOutput(dir);
 
-                    task = makeTask(taskPrefix+"Java", TaskSourceCopy.class);
-                    task.setSource(set.getJava());
-                    task.setOutput(dir);
+                // must get replacements from extension afterEvaluate()
 
-                    // must get replacements from extension afterEvaluate()
+                JavaCompile compile = (JavaCompile) project.getTasks().getByName(set.getCompileJavaTaskName());
+                compile.dependsOn(task);
+                compile.setSource(dir);
+            }
 
-                    JavaCompile compile = (JavaCompile) project.getTasks().getByName(set.getCompileJavaTaskName());
-                    compile.dependsOn(task);
-                    compile.setSource(dir);
-                }
+            // groovy
+            if (project.getPlugins().hasPlugin("groovy"))
+            {
+                GroovySourceSet langSet = (GroovySourceSet) new DslObject(set).getConvention().getPlugins().get("groovy");
+                File dir = new File(dirRoot, "groovy");
 
-                // groovy
-                if (project.getPlugins().hasPlugin("groovy"))
-                {
-                    GroovySourceSet langSet = (GroovySourceSet) new DslObject(set).getConvention().getPlugins().get("groovy");
-                    File dir = new File(dirRoot, "groovy");
+                task = makeTask(taskPrefix+"Groovy", TaskSourceCopy.class);
+                task.setSource(langSet.getGroovy());
+                task.setOutput(dir);
 
-                    task = makeTask(taskPrefix+"Groovy", TaskSourceCopy.class);
-                    task.setSource(langSet.getGroovy());
-                    task.setOutput(dir);
+                // must get replacements from extension afterEValuate()
 
-                    // must get replacements from extension afterEValuate()
-
-                    GroovyCompile compile = (GroovyCompile) project.getTasks().getByName(set.getCompileTaskName("groovy"));
-                    compile.dependsOn(task);
-                    compile.setSource(dir);
-                }
+                GroovyCompile compile = (GroovyCompile) project.getTasks().getByName(set.getCompileTaskName("groovy"));
+                compile.dependsOn(task);
+                compile.setSource(dir);
             }
         };
 
@@ -450,25 +437,21 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
     protected final void doDevTimeDeobf()
     {
-        final Task compileDummy = getDummyDep("compile", delayedFile(DIR_DEOBF_DEPS + "/compileDummy.jar"), TASK_DD_COMPILE);
-        final Task providedDummy = getDummyDep("compile", delayedFile(DIR_DEOBF_DEPS + "/providedDummy.jar"), TASK_DD_PROVIDED);
+        getDummyDep("compile", delayedFile(DIR_DEOBF_DEPS + "/compileDummy.jar"), TASK_DD_COMPILE);
+        getDummyDep("compile", delayedFile(DIR_DEOBF_DEPS + "/providedDummy.jar"), TASK_DD_PROVIDED);
 
-        setupDevTimeDeobf(compileDummy, providedDummy);
+        setupDevTimeDeobf();
     }
 
-    protected void setupDevTimeDeobf(final Task compileDummy, final Task providedDummy)
+    protected void setupDevTimeDeobf()
     {
         // die wih error if I find invalid types...
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project)
-            {
-                if (project.getState().getFailure() != null)
-                    return;
+        project.afterEvaluate(project -> {
+            if (project.getState().getFailure() != null)
+                return;
 
-                // add maven repo
-                addMavenRepo(project, "deobfDeps", delayedFile(DIR_DEOBF_DEPS).call().getAbsoluteFile().toURI().getPath());
-            }
+            // add maven repo
+            addMavenRepo(project, "deobfDeps", delayedFile(DIR_DEOBF_DEPS).call().getAbsoluteFile().toURI().getPath());
         });
     }
 
@@ -477,14 +460,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         JavaExec exec = makeTask("runClient", JavaExec.class);
         exec.getOutputs().dir(delayedFile(REPLACE_RUN_DIR));
         exec.setMain(GRADLE_START_CLIENT);
-        exec.doFirst(new Action<Task>()
-        {
-            @Override
-            public void execute(Task task)
-            {
-                ((JavaExec) task).workingDir(delayedFile(REPLACE_RUN_DIR));
-            }
-        });
+        exec.doFirst(task -> ((JavaExec) task).workingDir(delayedFile(REPLACE_RUN_DIR)));
         exec.setStandardOutput(System.out);
         exec.setErrorOutput(System.err);
 

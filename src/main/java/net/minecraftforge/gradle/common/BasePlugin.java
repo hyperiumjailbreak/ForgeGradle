@@ -32,15 +32,11 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraftforge.gradle.util.json.version.ManifestVersion;
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration.State;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Delete;
@@ -144,16 +140,12 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         project.getConfigurations().getByName(CONFIG_MC_DEPS).extendsFrom(project.getConfigurations().getByName(CONFIG_MC_DEPS_CLIENT));
 
         // after eval
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project)
-            {
-                // dont continue if its already failed!
-                if (project.getState().getFailure() != null)
-                    return;
+        project.afterEvaluate(project -> {
+            // dont continue if its already failed!
+            if (project.getState().getFailure() != null)
+                return;
 
-                afterEvaluate();
-            }
+            afterEvaluate();
         });
 
         // some default tasks
@@ -223,60 +215,51 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     @SuppressWarnings("serial")
     private void makeCommonTasks()
     {
-        EtagDownloadTask getVersionJson = makeTask(TASK_DL_VERSION_JSON, EtagDownloadTask.class);
-        {
-            getVersionJson.setUrl(new Closure<String>(BasePlugin.class) {
-                @Override
-                public String call()
+        final EtagDownloadTask getVersionJson = makeTask(TASK_DL_VERSION_JSON, EtagDownloadTask.class);
+        getVersionJson.setUrl(new Closure<String>(BasePlugin.class) {
+            @Override
+            public String call()
                 {
                     return mcManifest.get(getExtension().getVersion()).url;
                 }
-            });
-            getVersionJson.setFile(delayedFile(JSON_VERSION));
-            getVersionJson.setDieWithError(false);
-            getVersionJson.doLast(new Closure<Boolean>(BasePlugin.class) // normalizes to linux endings
-            {
-                @Override
-                public Boolean call()
-                {
-                    try
-                    {
-                        // normalize the line endings...
-                        File json = delayedFile(JSON_VERSION).call();
-                        if (!json.exists())
-                            return true;
+        });
+        getVersionJson.setFile(delayedFile(JSON_VERSION));
+        getVersionJson.setDieWithError(false);
+        getVersionJson.doLast(new Closure<Boolean>(BasePlugin.class) {
+            @Override
+            public Boolean call() {
+                try {
+                    // normalize the line endings...
+                    File json = delayedFile(JSON_VERSION).call();
+                    if (!json.exists())
+                        return true;
 
-                        List<String> lines = Files.readLines(json, Charsets.UTF_8);
-                        StringBuilder buf = new StringBuilder();
-                        for (String line : lines)
-                        {
-                            buf.append(line).append('\n');
-                        }
-                        Files.write(buf.toString().getBytes(Charsets.UTF_8), json);
+                    List<String> lines = Files.readLines(json, Charsets.UTF_8);
+                    StringBuilder buf = new StringBuilder();
+                    for (String line : lines) {
+                        buf.append(line).append('\n');
+                    }
+                    Files.write(buf.toString().getBytes(Charsets.UTF_8), json);
 
-                        // grab the AssetIndex if it isnt already there
-                        if (!replacer.hasReplacement(REPLACE_ASSET_INDEX))
-                        {
-                            parseAndStoreVersion(json, json.getParentFile());
-                        }
+                    // grab the AssetIndex if it isnt already there
+                    if (!replacer.hasReplacement(REPLACE_ASSET_INDEX)) {
+                        parseAndStoreVersion(json, json.getParentFile());
                     }
-                    catch (Throwable t)
-                    {
-                        Throwables.propagate(t);
-                    }
-                    return true;
+                } catch (Throwable t) {
+                    Throwables.propagate(t);
                 }
-            });
-        }
+                return true;
+            }
+        });
 
-        ExtractConfigTask extractNatives = makeTask(TASK_EXTRACT_NATIVES, ExtractConfigTask.class);
+        final ExtractConfigTask extractNatives = makeTask(TASK_EXTRACT_NATIVES, ExtractConfigTask.class);
         extractNatives.setDestinationDir(delayedFile(DIR_NATIVES));
         extractNatives.setConfig(CONFIG_NATIVES);
         extractNatives.exclude("META-INF/**", "META-INF/**");
         extractNatives.setDoesCache(true);
         extractNatives.dependsOn(getVersionJson);
 
-        EtagDownloadTask getAssetsIndex = makeTask(TASK_DL_ASSET_INDEX, EtagDownloadTask.class);
+        final EtagDownloadTask getAssetsIndex = makeTask(TASK_DL_ASSET_INDEX, EtagDownloadTask.class);
         getAssetsIndex.setUrl(new Closure<String>(BasePlugin.class) {
             @Override
             public String call()
@@ -288,12 +271,12 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         getAssetsIndex.setDieWithError(false);
         getAssetsIndex.dependsOn(getVersionJson);
 
-        DownloadAssetsTask getAssets = makeTask(TASK_DL_ASSETS, DownloadAssetsTask.class);
+        final DownloadAssetsTask getAssets = makeTask(TASK_DL_ASSETS, DownloadAssetsTask.class);
         getAssets.setAssetsDir(delayedFile(DIR_ASSETS));
         getAssets.setAssetsIndex(delayedFile(JSON_ASSET_INDEX));
         getAssets.dependsOn(getAssetsIndex);
 
-        Download dlClient = makeTask(TASK_DL_CLIENT, Download.class);
+        final Download dlClient = makeTask(TASK_DL_CLIENT, Download.class);
         dlClient.setOutput(delayedFile(JAR_CLIENT_FRESH));
         dlClient.setUrl(new Closure<String>(BasePlugin.class) {
             @Override
@@ -304,19 +287,17 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         });
         dlClient.dependsOn(getVersionJson);
 
-        ExtractConfigTask extractMcpData = makeTask(TASK_EXTRACT_MCP, ExtractConfigTask.class);
-        {
-            extractMcpData.setDestinationDir(delayedFile(DIR_MCP_DATA));
-            extractMcpData.setConfig(CONFIG_MCP_DATA);
-            extractMcpData.setDoesCache(true);
-        }
+        final ExtractConfigTask extractMcpData = makeTask(TASK_EXTRACT_MCP, ExtractConfigTask.class);
+        extractMcpData.setDestinationDir(delayedFile(DIR_MCP_DATA));
+        extractMcpData.setConfig(CONFIG_MCP_DATA);
+        extractMcpData.setDoesCache(true);
 
-        ExtractConfigTask extractMcpMappings = makeTask(TASK_EXTRACT_MAPPINGS, ExtractConfigTask.class);
+        final ExtractConfigTask extractMcpMappings = makeTask(TASK_EXTRACT_MAPPINGS, ExtractConfigTask.class);
         extractMcpMappings.setDestinationDir(delayedFile(DIR_MCP_MAPPINGS));
         extractMcpMappings.setConfig(CONFIG_MAPPINGS);
         extractMcpMappings.setDoesCache(true);
 
-        GenSrgs genSrgs = makeTask(TASK_GENERATE_SRGS, GenSrgs.class);
+        final GenSrgs genSrgs = makeTask(TASK_GENERATE_SRGS, GenSrgs.class);
         genSrgs.setInSrg(delayedFile(MCP_DATA_SRG));
         genSrgs.setInExc(delayedFile(MCP_DATA_EXC));
         genSrgs.setMethodsCsv(delayedFile(CSV_METHOD));
@@ -331,7 +312,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         genSrgs.setDoesCache(true);
         genSrgs.dependsOn(extractMcpData, extractMcpMappings);
 
-        Delete clearCache = makeTask(TASK_CLEAN_CACHE, Delete.class);
+        final Delete clearCache = makeTask(TASK_CLEAN_CACHE, Delete.class);
         clearCache.delete(delayedFile(REPLACE_CACHE_DIR), delayedFile(DIR_LOCAL_CACHE));
         clearCache.setGroup(GROUP_FG);
         clearCache.setDescription("Cleares the ForgeGradle cache.");
@@ -347,16 +328,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         return (K) project.getExtensions().getByName(EXT_NAME_MC);
     }
 
-    public DefaultTask makeTask(String name)
-    {
-        return makeTask(name, DefaultTask.class);
-    }
-
-    public DefaultTask maybeMakeTask(String name)
-    {
-        return maybeMakeTask(name, DefaultTask.class);
-    }
-
     public <T extends Task> T makeTask(String name, Class<T> type)
     {
         return makeTask(project, name, type);
@@ -369,12 +340,12 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
     public static <T extends Task> T maybeMakeTask(Project proj, String name, Class<T> type)
     {
-        return (T) proj.getTasks().maybeCreate(name, type);
+        return proj.getTasks().maybeCreate(name, type);
     }
 
     public static <T extends Task> T makeTask(Project proj, String name, Class<T> type)
     {
-        return (T) proj.getTasks().create(name, type);
+        return proj.getTasks().create(name, type);
     }
 
     public void applyExternalPlugin(String plugin)
@@ -382,27 +353,19 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         project.apply(ImmutableMap.of("plugin", plugin));
     }
 
-    public MavenArtifactRepository addMavenRepo(Project proj, final String name, final String url)
+    public void addMavenRepo(Project proj, final String name, final String url)
     {
-        return proj.getRepositories().maven(new Action<MavenArtifactRepository>() {
-            @Override
-            public void execute(MavenArtifactRepository repo)
-            {
-                repo.setName(name);
-                repo.setUrl(url);
-            }
+        proj.getRepositories().maven(repo -> {
+            repo.setName(name);
+            repo.setUrl(url);
         });
     }
 
-    public FlatDirectoryArtifactRepository addFlatRepo(Project proj, final String name, final Object... dirs)
+    public void addFlatRepo(Project proj, final String name, final Object... dirs)
     {
-        return proj.getRepositories().flatDir(new Action<FlatDirectoryArtifactRepository>() {
-            @Override
-            public void execute(FlatDirectoryArtifactRepository repo)
-            {
-                repo.setName(name);
-                repo.dirs(dirs);
-            }
+        proj.getRepositories().flatDir(repo -> {
+            repo.setName(name);
+            repo.dirs(dirs);
         });
     }
 
@@ -505,26 +468,19 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
      * Does nothing (returns null) if the file is not found, but hard-crashes if it could not be parsed.
      * @param file version file to parse
      * @param inheritanceDirs folders to look for the parent json, should include DIR_JSON
-     * @return null if the file doesnt exist
      */
-    protected Version parseAndStoreVersion(File file, File... inheritanceDirs)
+    protected void parseAndStoreVersion(File file, File... inheritanceDirs)
     {
         if (!file.exists())
-            return null;
+            return;
 
         Version version = null;
 
-        if (version == null)
-        {
-            try
-            {
-                version = JsonFactory.loadVersion(file, delayedString(REPLACE_MC_VERSION).call(), inheritanceDirs);
-            }
-            catch (Exception e)
-            {
-                project.getLogger().error("" + file + " could not be parsed");
-                Throwables.propagate(e);
-            }
+        try {
+            version = JsonFactory.loadVersion(file, delayedString(REPLACE_MC_VERSION).call(), inheritanceDirs);
+        } catch (Exception e) {
+            project.getLogger().error("" + file + " could not be parsed");
+            Throwables.propagate(e);
         }
 
         // apply the dep info.
@@ -566,12 +522,10 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         replacer.putReplacement(REPLACE_ASSET_INDEX, version.assetIndex.id);
 
         this.mcVersionJson = version;
-
-        return version;
     }
 
     // DELAYED STUFF ONLY ------------------------------------------------------------------------
-    private LoadingCache<String, TokenReplacer> replacerCache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, TokenReplacer> replacerCache = CacheBuilder.newBuilder()
             .weakValues()
             .build(
                     new CacheLoader<String, TokenReplacer>() {
@@ -580,7 +534,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                             return new TokenReplacer(replacer, key);
                         }
                     });
-    private LoadingCache<String, DelayedString> stringCache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, DelayedString> stringCache = CacheBuilder.newBuilder()
             .weakValues()
             .build(
                     new CacheLoader<String, DelayedString>() {
@@ -589,7 +543,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                             return new DelayedString(CacheLoader.class, replacerCache.getUnchecked(key));
                         }
                     });
-    private LoadingCache<String, DelayedFile> fileCache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, DelayedFile> fileCache = CacheBuilder.newBuilder()
             .weakValues()
             .build(
                     new CacheLoader<String, DelayedFile>() {

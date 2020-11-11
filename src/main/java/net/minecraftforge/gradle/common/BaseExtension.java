@@ -35,8 +35,6 @@ public abstract class BaseExtension
 {
     protected static final transient Map<String, String> MCP_VERSION_MAP = ImmutableMap.of("1.8", "9.10");
 
-    public static final String forgeGradleVersion = "2.1-SNAPSHOT";
-
     protected transient Project             project;
     protected transient ReplacementProvider replacer;
     protected String                        version;
@@ -81,34 +79,6 @@ public abstract class BaseExtension
 
         // maybe they set the mappings first
         checkMappings();
-    }
-
-    /**
-     * Get the MCP data version
-     *
-     * @return The MCP data version
-     */
-    public String getMcpVersion()
-    {
-        return mcpVersion == null ? "unknown" : mcpVersion;
-    }
-
-    public void setMcpVersion(String mcpVersion)
-    {
-        this.mcpVersion = mcpVersion;
-    }
-
-    public void copyFrom(BaseExtension ext)
-    {
-        if ("null".equals(version))
-        {
-            setVersion(ext.getVersion());
-        }
-
-        if ("unknown".equals(mcpVersion))
-        {
-            setMcpVersion(ext.getMcpVersion());
-        }
     }
 
     /**
