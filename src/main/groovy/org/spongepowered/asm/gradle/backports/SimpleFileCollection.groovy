@@ -16,7 +16,6 @@
 package org.spongepowered.asm.gradle.backports
 
 import org.gradle.api.internal.file.collections.FileCollectionAdapter
-import org.gradle.api.internal.file.collections.ListBackedFileSet
 import org.gradle.api.internal.file.collections.MinimalFileSet
 
 import java.io.File
@@ -29,14 +28,14 @@ import java.util.Collection
  */
 class SimpleFileCollection extends FileCollectionAdapter implements Serializable {
     SimpleFileCollection(File... files) {
-        this(new ListBackedFileSet(files))
+        this(new MutableListBackedFileSet(files))
     }
 
     SimpleFileCollection(Collection<File> files) {
-        this(new ListBackedFileSet(files))
+        this(new MutableListBackedFileSet(files))
     }
 
-    private SimpleFileCollection(MinimalFileSet fileSet) {
+    SimpleFileCollection(MinimalFileSet fileSet) {
         super(fileSet)
     }
 }
