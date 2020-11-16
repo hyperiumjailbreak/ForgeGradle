@@ -13,7 +13,6 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: "groovy"
-apply plugin: "com.gradle.plugin-publish"
 
 group = 'com.hyperiumjailbreak.gradle'
 version = '2.1-SNAPSHOT'
@@ -27,11 +26,6 @@ repositories {
         url = "https://files.minecraftforge.net/maven"
     }
 
-    maven {
-        // because Srg2Source needs an eclipse dependency.
-        name = "eclipse"
-        url = "https://repo.eclipse.org/content/groups/eclipse/"
-    }
     jcenter() // get as many deps from here as possible
     mavenCentral()
 
@@ -65,7 +59,6 @@ dependencies {
 
     // mcp stuff
     shade 'de.oceanlabs.mcp:mcinjector:3.4-SNAPSHOT'
-    shade 'net.minecraftforge.srg2source:Srg2Source:3.3-SNAPSHOT'
 
     //Stuff used in the GradleStart classes
     compileOnly 'com.mojang:authlib:1.5.16'
@@ -93,9 +86,9 @@ jar {
     }
 
     manifest {
-        attributes 'version': project.version
-        attributes 'javaCompliance': project.targetCompatibility
-        attributes 'group': project.group
+        attributes 'Version': project.version
+        attributes 'JavaCompliance': project.targetCompatibility
+        attributes 'Group': project.group
         attributes 'Implementation-Version': project.version + getGitHash()
     }
 }
@@ -110,28 +103,12 @@ artifacts {
     archives sourceJar
 }
 
-pluginBundle {
-    website = 'http://www.gradle.org/'
-    vcsUrl = 'https://github.com/hyperiumjailbreak/ForgeGradle'
-    description = 'Gradle plugin for HyperiumJailbreak'
-    tags = ['forge', 'minecraft', 'minecraftforge']
-
-    plugins {
-        minecraftTweaker {
-            id = 'com.hyperiumjailbreak.minecraft-tweaker'
-            displayName = 'Minecraft Client Tweaker Plugin'
-        }
-        mixingradle {
-            id = 'com.hyperiumjailbreak.mixingradle'
-            displayName = 'MixinGradle 0.5'
-        }
-    }
-}
-
 uploadArchives {
     repositories.mavenDeployer {
-        repository(url: "https://hyperiumjailbreak.mycloudrepo.io/repositories/libs") {
-            authentication(userName: "deploy@rdil.rocks", password: "FILLIN")
+        if (project.hasProperty("maven.password")) {
+            repository(url: "https://hyperiumjailbreak.mycloudrepo.io/repositories/libs") {
+                authentication(userName: "deploy@rdil.rocks", password: project.getProperty("maven.password"))
+            }
         }
 
         pom {

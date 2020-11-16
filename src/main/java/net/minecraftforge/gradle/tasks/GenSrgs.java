@@ -31,9 +31,9 @@ import java.util.Map.Entry;
 import net.minecraftforge.gradle.common.Constants;
 import net.minecraftforge.gradle.util.caching.Cached;
 import net.minecraftforge.gradle.util.caching.CachedTask;
+import net.minecraftforge.gradle.util.data.MethodData;
+import net.minecraftforge.gradle.util.data.SrgContainer;
 import net.minecraftforge.gradle.util.delayed.DelayedFile;
-import net.minecraftforge.srg2source.rangeapplier.MethodData;
-import net.minecraftforge.srg2source.rangeapplier.SrgContainer;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFile;
@@ -44,7 +44,6 @@ import org.gradle.api.tasks.TaskAction;
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 
 public class GenSrgs extends CachedTask
@@ -76,17 +75,14 @@ public class GenSrgs extends CachedTask
 
         // Do SRG stuff
         SrgContainer inSrg = new SrgContainer().readSrg(getInSrg());
-        Map<String, String> excRemap = readExtraSrgs(getExtraSrgs(), inSrg);
         writeOutSrgs(inSrg, methods, fields);
 
         // do EXC stuff
-        writeOutExcs(excRemap, methods);
-
+        writeOutExcs(methods);
     }
 
     private static void readCSVs(File methodCsv, File fieldCsv, Map<String, String> methodMap, Map<String, String> fieldMap) throws IOException
     {
-
         // read methods
         CSVReader csvReader = Constants.getReader(methodCsv);
         for (String[] s : csvReader.readAll())
@@ -100,11 +96,6 @@ public class GenSrgs extends CachedTask
         {
             fieldMap.put(s[0], s[1]);
         }
-    }
-
-    private Map<String, String> readExtraSrgs(FileCollection extras, SrgContainer inSrg)
-    {
-        return Maps.newHashMap(); //Nop this out.
     }
 
     private void writeOutSrgs(SrgContainer inSrg, Map<String, String> methods, Map<String, String> fields) throws IOException
@@ -255,7 +246,7 @@ public class GenSrgs extends CachedTask
         mcpToNotch.close();
     }
 
-    private void writeOutExcs(Map<String, String> excRemap, Map<String, String> methods) throws IOException
+    private void writeOutExcs(Map<String, String> methods) throws IOException
     {
         // ensure folders exist
         Files.createParentDirs(getSrgExc());
@@ -327,8 +318,6 @@ public class GenSrgs extends CachedTask
 
                 // get new name
                 String name = split[0].substring(dotIndex+1, sigIndex);
-                if (excRemap.containsKey(name))
-                    name = excRemap.get(name);
 
                 // write remapped line
                 srgOut.write(split[0].substring(0, dotIndex) + name + split[0].substring(sigIndex) + "=" + split[1]);

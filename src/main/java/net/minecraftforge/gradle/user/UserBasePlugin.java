@@ -60,7 +60,6 @@ import net.minecraftforge.gradle.util.delayed.DelayedFile;
 
 public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePlugin<T>
 {
-    private boolean madeDecompTasks = false; // to gaurd against stupid programmers
     private final Closure<Object> makeRunDir = new Closure<Object>(UserBasePlugin.class) {
         public Object call()
         {
@@ -120,12 +119,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     @Override
     protected void afterEvaluate()
     {
-        // to guard against stupid programmers
-        if (!madeDecompTasks)
-        {
-            throw new RuntimeException("THE DECOMP TASKS HAVENT BEEN MADE!! STUPID FORGEGRADLE DEVELOPER!!!! :(");
-        }
-
         // verify runDir is set
         if (Strings.isNullOrEmpty(getExtension().getRunDir()))
         {
@@ -170,7 +163,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         exec.classpath(project.getConfigurations().getByName(CONFIG_MC));
         exec.classpath(project.getConfigurations().getByName(CONFIG_MC_DEPS));
         exec.classpath(project.getConfigurations().getByName(CONFIG_START));
-        exec.classpath(jarTask.getArchivePath());
+        exec.classpath(jarTask.getArchiveFile().get().getAsFile());
         exec.dependsOn(jarTask);
         exec.jvmArgs(getClientJvmArgs(getExtension()));
         exec.args(getClientRunArgs(getExtension()));
@@ -199,8 +192,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     @SuppressWarnings("unchecked")
 	protected void makeDecompTasks(final String globalPattern, final String localPattern, Object inputJar, String inputTask, Object mcpPatchSet)
     {
-        madeDecompTasks = true; // to guard against stupid programmers
-
         final DeobfuscateJar deobfBin = makeTask(TASK_DEOBF_BIN, DeobfuscateJar.class);
         deobfBin.setSrg(delayedFile(SRG_NOTCH_TO_MCP));
         deobfBin.setExceptorJson(delayedFile(MCP_DATA_EXC_JSON));
