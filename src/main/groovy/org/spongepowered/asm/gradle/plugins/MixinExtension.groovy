@@ -91,12 +91,6 @@ public class MixinExtension {
     private Set<SourceSet> sourceSets = []
 
     /**
-     * Mapping of refMap names to sourceSet names, used to avoid refMap
-     * conflicts (or at least notify the user that a conflict has occurred)
-     */
-    private Map<String, String> refMaps = [:]
-
-    /**
      * AP tokens, if this map is empty then the tokens argument will be omitted,
      * otherwise it will be compiled to a semicolon-separated list and passed
      * into the 
@@ -224,17 +218,6 @@ public class MixinExtension {
 
         SourceSet.metaClass.setRefMap = { value ->
             delegate.ext.refMap = value
-        }
-        
-        AbstractArchiveTask.metaClass.getRefMaps = {
-            if (!delegate.ext.has('refMaps')) {
-                delegate.ext.refMaps = new ListBackedSet<File>()
-            }
-            delegate.ext.refMaps
-        }
-
-        AbstractArchiveTask.metaClass.setRefMaps = { value ->
-            delegate.ext.refMaps = value
         }
     }
 
@@ -496,9 +479,6 @@ public class MixinExtension {
         // Don't perform default behaviour, a sourceSet has been added manually
         this.applyDefault = false
 
-        // For closures below
-        final def refMaps = this.refMaps
-
         // Refmap file
         final def refMapFile = project.file("${compileTask.temporaryDir}/${compileTask.name}-refmap.json")
 
@@ -518,8 +498,6 @@ public class MixinExtension {
 
         // Closure to prepare AP environment before compile task runs
         compileTask.doFirst {
-            refMaps[compileTask.ext.refMap] = set.name
-
             refMapFile.delete()
             srgFiles.each {
                 it.value.delete()
@@ -577,7 +555,6 @@ public class MixinExtension {
 
         // Add the refmap to all reobf'd jars
         this.reobfTasks.each { reobfTask ->
-            reobfTask.jar.getRefMaps().innerList.add(artifactSpecificRefMap)
             reobfTask.jar.from(artifactSpecificRefMap)
         }
 
