@@ -534,7 +534,7 @@ public class MixinExtension {
         // refmaps with the same source name
         final def artifactSpecificRefMap = new File(refMapFile.parentFile, compileTask.ext.refMap)
 
-        // Closure to rename generated refMap to artefact-specific refmap when
+        // Closure to rename generated refMap to artifact-specific refmap when
         // compile task is completed
         compileTask.doLast {
             // Delete the old one
@@ -542,7 +542,7 @@ public class MixinExtension {
 
             // Copy the new one if it was successfully generated
             if (compileTask.ext.refMapFile.exists()) {
-                Files.copy(refMapFile, artefactSpecificRefMap) 
+                Files.copy(refMapFile, artifactSpecificRefMap) 
             }
         }
 
@@ -578,8 +578,8 @@ public class MixinExtension {
 
         // Add the refmap to all reobf'd jars
         this.reobfTasks.each { reobfTask ->
-            reobfTask.jar.getRefMaps().files.add(artefactSpecificRefMap)
-            reobfTask.jar.from(artefactSpecificRefMap)
+            reobfTask.jar.getRefMaps().files.add(artifactSpecificRefMap)
+            reobfTask.jar.from(artifactSpecificRefMap)
         }
 
     }
