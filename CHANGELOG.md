@@ -21,3 +21,6 @@ NOTE: See https://github.com/hyperiumjailbreak/ForgeGradle/commits/FG_2.1 for a 
 * Rename some stuff
 * Add defaults to some values which otherwise would throw errors
 * Add source jar
+* Add mixingradle 0.5 with a few minor modifications to support newer Gradle versions
+* Add support for Gradle 5
+* Update the README
