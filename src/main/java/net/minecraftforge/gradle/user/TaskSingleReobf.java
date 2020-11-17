@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +37,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskAction;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
@@ -115,7 +115,7 @@ public class TaskSingleReobf extends DefaultTask
                 srgLines.createNewFile();
             }
 
-            BufferedWriter writer = Files.newWriter(srgLines, Charsets.UTF_8);
+            BufferedWriter writer = Files.newWriter(srgLines, StandardCharsets.UTF_8);
             for (String line : getExtraSrgLines())
             {
                 writer.write(line);

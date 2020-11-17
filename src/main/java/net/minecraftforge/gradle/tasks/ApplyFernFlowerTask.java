@@ -109,14 +109,17 @@ public class ApplyFernFlowerTask extends CachedTask {
             return new AdvancedJadRenamer(arg0);
         }
     }
+
     public static class AdvancedJadRenamer extends JADNameProvider {
         private StructMethod wrapper;
         private static final Pattern p = Pattern.compile("func_(\\d+)_.*");
+
         public AdvancedJadRenamer(StructMethod wrapper)
         {
             super(wrapper);
             this.wrapper = wrapper;
         }
+
         @Override
         public String renameAbstractParameter(String abstractParam, int index)
         {
@@ -129,9 +132,9 @@ public class ApplyFernFlowerTask extends CachedTask {
                 }
             }
             return result;
-
         }
     }
+
     class ByteCodeProvider implements IBytecodeProvider {
         @Override
         public byte[] getBytecode(String externalPath, String internalPath) throws IOException {

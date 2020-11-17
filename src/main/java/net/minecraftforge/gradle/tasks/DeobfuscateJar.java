@@ -19,7 +19,6 @@
  */
 package net.minecraftforge.gradle.tasks;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -41,6 +40,7 @@ import org.gradle.api.tasks.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.ZipFile;
@@ -323,7 +323,7 @@ public class DeobfuscateJar extends CachedTask
             {
                 if (f == null)
                     continue;
-                Files.readLines(f, Charsets.UTF_8, new LineProcessor<String>()
+                Files.readLines(f, StandardCharsets.UTF_8, new LineProcessor<String>()
                 {
                     @Override
                     public boolean processLine(String line) throws IOException

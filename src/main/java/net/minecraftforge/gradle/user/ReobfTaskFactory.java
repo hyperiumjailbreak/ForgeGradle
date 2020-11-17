@@ -47,7 +47,7 @@ public class ReobfTaskFactory implements NamedDomainObjectFactory<IReobfuscator>
     @Override
     public IReobfuscator create(final String jarName)
     {
-        String name = "reobf" + Character.toUpperCase(jarName.charAt(0)) + jarName.substring(1);
+        final String name = "reobf" + Character.toUpperCase(jarName.charAt(0)) + jarName.substring(1);
         final TaskSingleReobf task = plugin.maybeMakeTask(name, TaskSingleReobf.class);
 
         task.dependsOn(Constants.TASK_GENERATE_SRGS, jarName);
@@ -215,21 +215,6 @@ public class ReobfTaskFactory implements NamedDomainObjectFactory<IReobfuscator>
             }
         }
 
-        @Deprecated
-        @Override
-        public void useSrgSrg()
-        {
-            setMappingType(ReobfMappingType.SEARGE);
-            warnDeprecation("useSrgSrg()", "mappingType");
-        }
-
-        @Deprecated
-        @Override
-        public void useNotchSrg()
-        {
-            setMappingType(ReobfMappingType.NOTCH);
-            warnDeprecation("useNotchSrg()", "mappingType");
-        }
 
         private void warnDeprecation(String old, String new_)
         {

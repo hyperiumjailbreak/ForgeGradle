@@ -141,27 +141,4 @@ public interface IReobfuscator
      * @param o The collection to add
      */
     void extraFiles(Iterable<Object> o);
-
-    /**
-     * Sets the mappings to use Searge names. This is the default with the Forge
-     * plugin.
-     *
-     * i.e. Minecraft.func_71410_x()
-     *
-     * @deprecated Use {@link #setMappingType(ReobfMappingType)}
-     */
-    @Deprecated
-    void useSrgSrg();
-
-    /**
-     * Sets the mappings to use Notch names. Useful for mods that want to be
-     * able to run without Forge installed, such as libraries or hybrid mods.
-     *
-     * i.e. bsu.z()
-     *
-     * @deprecated Use {@link #setMappingType(ReobfMappingType)}
-     */
-    @Deprecated
-    void useNotchSrg();
-
 }

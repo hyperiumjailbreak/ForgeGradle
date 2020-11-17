@@ -148,11 +148,9 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         }
 
         // add GradleStart dep
-        {
-            ConfigurableFileCollection col = project.files(getStartDir());
-            col.builtBy(TASK_MAKE_START);
-            project.getDependencies().add(CONFIG_START, col);
-        }
+        final ConfigurableFileCollection col = project.files(getStartDir());
+        col.builtBy(TASK_MAKE_START);
+        project.getDependencies().add(CONFIG_START, col);
 
         // run task stuff
         // Add the mod and stuff to the classpath of the exec tasks.
@@ -216,7 +214,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         deobfDecomp.setApplyMarkers(true);
         deobfDecomp.setInJar(inputJar);
         deobfDecomp.setOutJar(deobfDecompJar);
-        deobfDecomp.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_DD_COMPILE, TASK_DD_PROVIDED); // todo grab correct task to depend on
+        deobfDecomp.dependsOn(inputTask, TASK_GENERATE_SRGS, TASK_DD_COMPILE, TASK_DD_PROVIDED);
 
         final ApplyFernFlowerTask decompile = makeTask(TASK_DECOMPILE, ApplyFernFlowerTask.class);
         decompile.setInJar(deobfDecompJar);
@@ -281,7 +279,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                 return;
 
             // the recompiled jar exists, or the decomp task is part of the build
-            boolean isDecomp = project.file(recompiledJar).exists() || project.getGradle().getStartParameter().getTaskNames().contains(TASK_SETUP_DECOMP);
+            final boolean isDecomp = project.file(recompiledJar).exists() || project.getGradle().getStartParameter().getTaskNames().contains(TASK_SETUP_DECOMP);
 
             // set task dependencies
             if (!isDecomp)
@@ -343,8 +341,8 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         // get convention
         JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
 
-        SourceSet main = javaConv.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        SourceSet api = javaConv.getSourceSets().create("api");
+        final SourceSet main = javaConv.getSourceSets().getByName("main");
+        final SourceSet api = javaConv.getSourceSets().create("api");
 
         api.setCompileClasspath(api.getCompileClasspath()
                 .plus(project.getConfigurations().getByName(CONFIG_MC))
@@ -362,7 +360,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         project.getConfigurations().getByName(api.getCompileConfigurationName()).extendsFrom(project.getConfigurations().getByName("compile"));
         project.getConfigurations().getByName("testCompile").extendsFrom(project.getConfigurations().getByName("apiCompile"));
 
-        Javadoc javadoc = (Javadoc) project.getTasks().getByName("javadoc");
+        final Javadoc javadoc = (Javadoc) project.getTasks().getByName("javadoc");
         javadoc.setClasspath(main.getOutput().plus(main.getCompileClasspath()));
 
         // set the compile target

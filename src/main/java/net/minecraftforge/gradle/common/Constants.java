@@ -32,6 +32,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +52,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
@@ -77,7 +77,7 @@ public class Constants
 
     public static final OS         OPERATING_SYSTEM = OS.CURRENT;
     public static final SystemArch SYSTEM_ARCH      = getArch();
-    public static final Charset    CHARSET          = Charsets.UTF_8;
+    public static final Charset    CHARSET          = StandardCharsets.UTF_8;
     public static final String     HASH_FUNC        = "MD5";
     public static final String     USER_AGENT       = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
 

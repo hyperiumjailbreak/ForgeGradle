@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import net.minecraftforge.gradle.common.Constants;
 
@@ -35,7 +36,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
@@ -68,7 +68,7 @@ public class EtagDownloadTask extends DefaultTask
         String etag;
         if (etagFile.exists())
         {
-            etag = Files.toString(etagFile, Charsets.UTF_8);
+            etag = Files.toString(etagFile, StandardCharsets.UTF_8);
         }
         else
         {
@@ -103,7 +103,7 @@ public class EtagDownloadTask extends DefaultTask
                         etag = con.getHeaderField("ETag");
                         if (!Strings.isNullOrEmpty(etag))
                         {
-                            Files.write(etag, etagFile, Charsets.UTF_8);
+                            Files.write(etag, etagFile, StandardCharsets.UTF_8);
                         }
 
                         break;

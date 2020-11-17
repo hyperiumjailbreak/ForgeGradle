@@ -23,6 +23,7 @@ import groovy.lang.Closure;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +42,6 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.PatternSet;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
 public class TaskSourceCopy extends DefaultTask
@@ -112,12 +112,12 @@ public class TaskSourceCopy extends DefaultTask
 
                 if (isIncluded(file))
                 {
-                    String text = Files.toString(file, Charsets.UTF_8);
+                    String text = Files.toString(file, StandardCharsets.UTF_8);
 
                     for (Entry<String, String> entry : repl.entrySet())
                         text = text.replaceAll(entry.getKey(), entry.getValue());
 
-                    Files.write(text, dest, Charsets.UTF_8);
+                    Files.write(text, dest, StandardCharsets.UTF_8);
                 }
                 else
                 {

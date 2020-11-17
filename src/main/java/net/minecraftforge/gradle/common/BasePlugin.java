@@ -28,6 +28,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Delete;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
@@ -58,7 +58,6 @@ import net.minecraftforge.gradle.tasks.DownloadAssetsTask;
 import net.minecraftforge.gradle.tasks.EtagDownloadTask;
 import net.minecraftforge.gradle.tasks.ExtractConfigTask;
 import net.minecraftforge.gradle.tasks.GenSrgs;
-import net.minecraftforge.gradle.util.FileLogListener;
 import net.minecraftforge.gradle.util.GradleConfigurationException;
 import net.minecraftforge.gradle.util.delayed.DelayedFile;
 import net.minecraftforge.gradle.util.delayed.DelayedFileTree;
@@ -98,11 +97,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
             projectCacheDir = new File(project.getProjectDir(), ".gradle");
 
         replacer.putReplacement(REPLACE_PROJECT_CACHE_DIR, projectCacheDir.getAbsolutePath());
-
-        FileLogListener listener = new FileLogListener(new File(projectCacheDir, "gradle.log"));
-        project.getLogging().addStandardOutputListener(listener);
-        project.getLogging().addStandardErrorListener(listener);
-        project.getGradle().addBuildListener(listener);
 
         // extension objects
         Type t = getClass().getGenericSuperclass();
@@ -219,9 +213,9 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         getVersionJson.setUrl(new Closure<String>(BasePlugin.class) {
             @Override
             public String call()
-                {
-                    return mcManifest.get(getExtension().getVersion()).url;
-                }
+            {
+                return mcManifest.get(getExtension().getVersion()).url;
+            }
         });
         getVersionJson.setFile(delayedFile(JSON_VERSION));
         getVersionJson.setDieWithError(false);
@@ -234,12 +228,12 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                     if (!json.exists())
                         return true;
 
-                    List<String> lines = Files.readLines(json, Charsets.UTF_8);
+                    List<String> lines = Files.readLines(json, StandardCharsets.UTF_8);
                     StringBuilder buf = new StringBuilder();
                     for (String line : lines) {
                         buf.append(line).append('\n');
                     }
-                    Files.write(buf.toString().getBytes(Charsets.UTF_8), json);
+                    Files.write(buf.toString().getBytes(StandardCharsets.UTF_8), json);
 
                     // grab the AssetIndex if it isnt already there
                     if (!replacer.hasReplacement(REPLACE_ASSET_INDEX)) {
@@ -374,16 +368,16 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         try
         {
             if (project.getGradle().getStartParameter().isOffline()) // dont even try the internet
-                return Files.toString(cache, Charsets.UTF_8);
+                return Files.toString(cache, StandardCharsets.UTF_8);
 
             // dude, its been less than 1 minute since the last time..
             if (cache.exists() && cache.lastModified() + 60000 >= System.currentTimeMillis())
-                return Files.toString(cache, Charsets.UTF_8);
+                return Files.toString(cache, StandardCharsets.UTF_8);
 
             String etag;
             if (etagFile.exists())
             {
-                etag = Files.toString(etagFile, Charsets.UTF_8);
+                etag = Files.toString(etagFile, StandardCharsets.UTF_8);
             }
             else
             {
@@ -410,7 +404,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
             {
                 // the existing file is good
                 Files.touch(cache); // touch it to update last-modified time, to wait another minute
-                out = Files.toString(cache, Charsets.UTF_8);
+                out = Files.toString(cache, StandardCharsets.UTF_8);
             }
             else if (con.getResponseCode() == 200)
             {
@@ -427,7 +421,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 }
                 else
                 {
-                    Files.write(etag, etagFile, Charsets.UTF_8);
+                    Files.write(etag, etagFile, StandardCharsets.UTF_8);
                 }
 
                 out = new String(data);
@@ -450,7 +444,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         {
             try
             {
-                return Files.toString(cache, Charsets.UTF_8);
+                return Files.toString(cache, StandardCharsets.UTF_8);
             }
             catch (IOException e)
             {

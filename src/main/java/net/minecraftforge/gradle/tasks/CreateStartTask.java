@@ -24,6 +24,7 @@ import groovy.lang.Closure;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -46,7 +47,6 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GradleVersion;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
@@ -107,7 +107,7 @@ public class CreateStartTask extends CachedTask
             // write file
             File outFile = new File(resourceDir, resEntry.getKey());
             outFile.getParentFile().mkdirs();
-            Files.write(out, outFile, Charsets.UTF_8);
+            Files.write(out, outFile, StandardCharsets.UTF_8);
         }
 
         // now compile, if im compiling.
@@ -204,7 +204,7 @@ public class CreateStartTask extends CachedTask
     {
         try
         {
-            return Resources.toString(resource, Charsets.UTF_8);
+            return Resources.toString(resource, StandardCharsets.UTF_8);
         }
         catch (Exception e)
         {

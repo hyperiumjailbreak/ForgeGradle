@@ -22,6 +22,7 @@ package net.minecraftforge.gradle.tasks;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +44,6 @@ import org.gradle.api.tasks.TaskAction;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
 public class GenSrgs extends CachedTask
@@ -108,11 +108,11 @@ public class GenSrgs extends CachedTask
         Files.createParentDirs(getMcpToNotch());
 
         // create streams
-        BufferedWriter notchToSrg = Files.newWriter(getNotchToSrg(), Charsets.UTF_8);
-        BufferedWriter notchToMcp = Files.newWriter(getNotchToMcp(), Charsets.UTF_8);
-        BufferedWriter srgToMcp = Files.newWriter(getSrgToMcp(), Charsets.UTF_8);
-        BufferedWriter mcpToSrg = Files.newWriter(getMcpToSrg(), Charsets.UTF_8);
-        BufferedWriter mcpToNotch = Files.newWriter(getMcpToNotch(), Charsets.UTF_8);
+        BufferedWriter notchToSrg = Files.newWriter(getNotchToSrg(), StandardCharsets.UTF_8);
+        BufferedWriter notchToMcp = Files.newWriter(getNotchToMcp(), StandardCharsets.UTF_8);
+        BufferedWriter srgToMcp = Files.newWriter(getSrgToMcp(), StandardCharsets.UTF_8);
+        BufferedWriter mcpToSrg = Files.newWriter(getMcpToSrg(), StandardCharsets.UTF_8);
+        BufferedWriter mcpToNotch = Files.newWriter(getMcpToNotch(), StandardCharsets.UTF_8);
 
         String line, temp, mcpName;
         // packages
@@ -253,11 +253,11 @@ public class GenSrgs extends CachedTask
         Files.createParentDirs(getMcpExc());
 
         // create streams
-        BufferedWriter srgOut = Files.newWriter(getSrgExc(), Charsets.UTF_8);
-        BufferedWriter mcpOut = Files.newWriter(getMcpExc(), Charsets.UTF_8);
+        BufferedWriter srgOut = Files.newWriter(getSrgExc(), StandardCharsets.UTF_8);
+        BufferedWriter mcpOut = Files.newWriter(getMcpExc(), StandardCharsets.UTF_8);
 
         // read and write existing lines
-        List<String> excLines = Files.readLines(getInExc(), Charsets.UTF_8);
+        List<String> excLines = Files.readLines(getInExc(), StandardCharsets.UTF_8);
         String[] split;
         for (String line : excLines)
         {
@@ -293,7 +293,7 @@ public class GenSrgs extends CachedTask
 
         for (File f : getExtraExcs())
         {
-            List<String> lines = Files.readLines(f, Charsets.UTF_8);
+            List<String> lines = Files.readLines(f, StandardCharsets.UTF_8);
 
             for (String line : lines)
             {
