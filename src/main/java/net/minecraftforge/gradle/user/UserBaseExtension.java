@@ -34,7 +34,6 @@ public class UserBaseExtension extends BaseExtension
 {
     private HashMap<String, Object> replacements = new HashMap<>();
     private ArrayList<String> includes = new ArrayList<>();
-    private String runDir = "run";
     private List<Object> clientJvmArgs = Lists.newArrayList();
     private List<Object> clientRunArgs = Lists.newArrayList();
 
@@ -85,27 +84,6 @@ public class UserBaseExtension extends BaseExtension
     public List<String> getIncludes()
     {
         return includes;
-    }
-
-    /**
-     * Set the run location for Minecraft
-     *
-     * @param value The run location
-     */
-    public void setRunDir(String value)
-    {
-        this.runDir = value;
-        replacer.putReplacement(Constants.REPLACE_RUN_DIR, runDir);
-    }
-
-    /**
-     * Get the run location for Minecraft
-     *
-     * @return The run location
-     */
-    public String getRunDir()
-    {
-        return this.runDir;
     }
 
     /**

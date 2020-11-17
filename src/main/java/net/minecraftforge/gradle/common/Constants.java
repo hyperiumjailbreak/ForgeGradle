@@ -195,7 +195,6 @@ public class Constants
 
     public static final String REPLACE_CLIENT_TWEAKER = "{RUN_CLIENT_TWEAKER}";
     public static final String REPLACE_CLIENT_MAIN    = "{RUN_CLIENT_MAIN}";
-    public static final String REPLACE_RUN_DIR        = "{RUN_DIR}";
 
     public static final String DIR_DEOBF_DEPS         = REPLACE_CACHE_DIR + "/deobfedDeps/";
 

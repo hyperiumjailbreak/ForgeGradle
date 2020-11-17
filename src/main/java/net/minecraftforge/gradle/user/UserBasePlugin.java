@@ -55,7 +55,6 @@ import net.minecraftforge.gradle.tasks.DeobfuscateJar;
 import net.minecraftforge.gradle.tasks.PostDecompileTask;
 import net.minecraftforge.gradle.tasks.RemapSources;
 import net.minecraftforge.gradle.user.ReobfTaskFactory.ReobfTaskWrapper;
-import net.minecraftforge.gradle.util.GradleConfigurationException;
 import net.minecraftforge.gradle.util.delayed.DelayedFile;
 
 public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePlugin<T>
@@ -63,7 +62,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     private final Closure<Object> makeRunDir = new Closure<Object>(UserBasePlugin.class) {
         public Object call()
         {
-            delayedFile(REPLACE_RUN_DIR).call().mkdirs();
+            new File("run").mkdirs();
             return null;
         }
     };
@@ -119,12 +118,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     @Override
     protected void afterEvaluate()
     {
-        // verify runDir is set
-        if (Strings.isNullOrEmpty(getExtension().getRunDir()))
-        {
-            throw new GradleConfigurationException("RunDir is not set!");
-        }
-
         super.afterEvaluate();
 
         // add replacements for run configs and gradle start
@@ -447,9 +440,9 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     protected void makeRunTasks()
     {
         JavaExec exec = makeTask("runClient", JavaExec.class);
-        exec.getOutputs().dir(delayedFile(REPLACE_RUN_DIR));
+        exec.getOutputs().dir(new File("run"));
         exec.setMain(GRADLE_START_CLIENT);
-        exec.doFirst(task -> ((JavaExec) task).workingDir(delayedFile(REPLACE_RUN_DIR)));
+        exec.doFirst(task -> ((JavaExec) task).workingDir(new File("run")));
         exec.setStandardOutput(System.out);
         exec.setErrorOutput(System.err);
 

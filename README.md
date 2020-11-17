@@ -12,5 +12,5 @@ This fork of ForgeGradle contains/uses code from third party sources. Credits fo
 - [ASM](https://asm.ow2.io/) by ObjectWeb
 - Gson/[Guava](https://github.com/google/guava) by Google
 - [jAstyle](https://github.com/abrarsyed/jAstyle) by Abrar Syed
-- Srg2Source/mcinjector by the MCP team and Minecraft Forge
+- mcinjector by the MCP team and Minecraft Forge
 - [LegacyLauncher](https://github.com/Mojang/LegacyLauncher)/authlib by Mojang
