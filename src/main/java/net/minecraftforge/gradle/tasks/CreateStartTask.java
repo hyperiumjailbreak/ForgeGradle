@@ -41,11 +41,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.GradleVersion;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
@@ -168,20 +166,7 @@ public class CreateStartTask extends CachedTask
         LogLevel startLevel = task.getProject().getGradle().getStartParameter().getLogLevel();
         if (startLevel.compareTo(LogLevel.LIFECYCLE) >= 0)
         {
-            GradleVersion v2_14 = GradleVersion.version("2.14");
-            if (GradleVersion.current().compareTo(v2_14) >= 0)
-            {
-                ant.setLifecycleLogLevel(AntMessagePriority.ERROR);
-            }
-            else
-            {
-                try {
-                    LoggingManager.class.getMethod("setLevel", LogLevel.class).invoke(task.getLogging(), LogLevel.ERROR);
-                } catch (Exception e) {
-                    //Couldn't find it? We are on some weird version oh well.
-                    task.getLogger().info("Could not set log level:", e);
-                }
-            }
+            ant.setLifecycleLogLevel(AntMessagePriority.ERROR);
         }
         return ant;
     }

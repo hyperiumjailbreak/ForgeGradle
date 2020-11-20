@@ -133,9 +133,6 @@ public class GradleStart {
 
         // now send it back for prelaunch
         preLaunch(argMap, extras);
-
-        // because its the dev env.
-        System.setProperty("fml.ignoreInvalidMinecraftCertificates", "true");
         
         //@@EXTRALINES@@
 

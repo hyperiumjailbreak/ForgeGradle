@@ -271,7 +271,7 @@ public class ReobfExceptor
         Map<String, String> map;
         Map<String, String> access;
         StringBuilder out = new StringBuilder();
-        Pattern reg = Pattern.compile("L([^;]+);");
+        static final Pattern reg = Pattern.compile("L([^;]+);");
 
         private SrgLineProcessor(Map<String, String> map, Map<String, String> access)
         {
