@@ -214,11 +214,5 @@ public class ReobfTaskFactory implements NamedDomainObjectFactory<IReobfuscator>
                 reobf.addSecondarySrgFile(obj);
             }
         }
-
-
-        private void warnDeprecation(String old, String new_)
-        {
-            plugin.project.getLogger().warn("Warning, {} is deprecated! You should use {} instead.", old, new_);
-        }
     }
 }

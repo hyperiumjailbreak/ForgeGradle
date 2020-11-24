@@ -24,22 +24,17 @@ import static net.minecraftforge.gradle.common.Constants.*;
 import java.io.File;
 import java.util.List;
 
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.MavenPluginConvention;
-import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.tasks.compile.GroovyCompile;
-import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
@@ -105,7 +100,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         configureCompilation();
 
         // Quality of life stuff for the users
-        createSourceCopyTasks();
         doDevTimeDeobf();
         makeRunTasks();
 
@@ -127,12 +121,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
         // map configurations (only if the maven or maven publish plugins exist)
         mapConfigurations();
-
-        // configure source replacement.
-        project.getTasks().withType(TaskSourceCopy.class, t -> {
-            t.replace(getExtension().getReplacements());
-            t.include(getExtension().getIncludes());
-        });
 
         // add task depends for reobf
         if (project.getPlugins().hasPlugin("maven"))
@@ -359,62 +347,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         // set the compile target
         javaConv.setSourceCompatibility("1.8");
         javaConv.setTargetCompatibility("1.8");
-    }
-
-    /**
-     * Creates and partially configures the source replacement tasks. The actual replacements must be configured afterEvaluate.
-     */
-    protected void createSourceCopyTasks()
-    {
-        JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
-
-        Action<SourceSet> action = set -> {
-            TaskSourceCopy task;
-
-            String capName = set.getName().substring(0, 1).toUpperCase() + set.getName().substring(1);
-            String taskPrefix = "source"+capName;
-            File dirRoot = new File(project.getBuildDir(), "sources/"+set.getName());
-
-            // java
-            {
-                File dir = new File(dirRoot, "java");
-
-                task = makeTask(taskPrefix+"Java", TaskSourceCopy.class);
-                task.setSource(set.getJava());
-                task.setOutput(dir);
-
-                // must get replacements from extension afterEvaluate()
-
-                JavaCompile compile = (JavaCompile) project.getTasks().getByName(set.getCompileJavaTaskName());
-                compile.dependsOn(task);
-                compile.setSource(dir);
-            }
-
-            // groovy
-            if (project.getPlugins().hasPlugin("groovy"))
-            {
-                GroovySourceSet langSet = (GroovySourceSet) new DslObject(set).getConvention().getPlugins().get("groovy");
-                File dir = new File(dirRoot, "groovy");
-
-                task = makeTask(taskPrefix+"Groovy", TaskSourceCopy.class);
-                task.setSource(langSet.getGroovy());
-                task.setOutput(dir);
-
-                // must get replacements from extension afterEValuate()
-
-                GroovyCompile compile = (GroovyCompile) project.getTasks().getByName(set.getCompileTaskName("groovy"));
-                compile.dependsOn(task);
-                compile.setSource(dir);
-            }
-        };
-
-        // for existing sourceSets
-        for (SourceSet set : javaConv.getSourceSets())
-        {
-            action.execute(set);
-        }
-        // for user-defined ones
-        javaConv.getSourceSets().whenObjectAdded(action);
     }
 
     protected final void doDevTimeDeobf()
