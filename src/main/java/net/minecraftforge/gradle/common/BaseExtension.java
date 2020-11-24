@@ -250,4 +250,8 @@ public abstract class BaseExtension
         int foundIndex = Arrays.binarySearch(array, key);
         return foundIndex >= 0 && array[foundIndex] == key;
     }
+
+    // backwards compat shims
+    public void setRunDir(String runDir) {}
+    public String getRunDir() { return null; }
 }
