@@ -142,7 +142,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         exec.classpath(project.getConfigurations().getByName(CONFIG_MC));
         exec.classpath(project.getConfigurations().getByName(CONFIG_MC_DEPS));
         exec.classpath(project.getConfigurations().getByName(CONFIG_START));
-        exec.classpath(jarTask.getArchiveFile().get().getAsFile());
+        exec.classpath(jarTask.getArchivePath());
         exec.dependsOn(jarTask);
         exec.jvmArgs(getClientJvmArgs(getExtension()));
         exec.args(getClientRunArgs(getExtension()));

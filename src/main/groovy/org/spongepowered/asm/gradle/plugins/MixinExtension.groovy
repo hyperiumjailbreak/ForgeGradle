@@ -673,4 +673,12 @@ public class MixinExtension {
 
         return importsFile
     }
+
+    /**
+     * @deprecated This is just a backwards compatibility shim.
+     */
+    @Deprecated
+    @SuppressWarnings("unused")
+    void disableRefMapWarning(boolean shim) {
+    }
 }

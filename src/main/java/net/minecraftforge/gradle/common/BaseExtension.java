@@ -33,6 +33,8 @@ import net.minecraftforge.gradle.util.delayed.ReplacementProvider;
 
 public abstract class BaseExtension
 {
+    public static final String forgeGradleVersion = "2.1-SNAPSHOT";
+
     protected static final transient Map<String, String> MCP_VERSION_MAP = ImmutableMap.of("1.8", "9.10");
 
     protected transient Project             project;
