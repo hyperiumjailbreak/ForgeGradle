@@ -77,12 +77,11 @@ public class ApplyFernFlowerTask extends CachedTask {
         final File tempDir = this.getTemporaryDir();
         final File tempJar = new File(this.getTemporaryDir(), in.getName());
 
-        Map<String, Object> mapOptions = new HashMap<String, Object>();
+        Map<String, Object> mapOptions = new HashMap<>();
         mapOptions.put(IFernflowerPreferences.DECOMPILE_INNER, "1");
         mapOptions.put(IFernflowerPreferences.DECOMPILE_GENERIC_SIGNATURES, "1");
         mapOptions.put(IFernflowerPreferences.ASCII_STRING_CHARACTERS, "1");
         mapOptions.put(IFernflowerPreferences.INCLUDE_ENTIRE_CLASSPATH, "1");
-        mapOptions.put(IFernflowerPreferences.DECOMPILE_GENERIC_SIGNATURES, "1");
         mapOptions.put(IFernflowerPreferences.REMOVE_SYNTHETIC, "1");
         mapOptions.put(IFernflowerPreferences.REMOVE_BRIDGE, "1");
         mapOptions.put(IFernflowerPreferences.LITERALS_AS_IS, "0");
@@ -322,6 +321,4 @@ public class ApplyFernFlowerTask extends CachedTask {
     {
         this.classpath = classpath;
     }
-
-
 }
